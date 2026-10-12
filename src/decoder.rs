@@ -18,6 +18,20 @@ const CONFLICTS: &[(Extension, Extension)] = &[
     // Zfinx (and so Zdinx, Zhinx and Zhinxmin) uses F's encodings with
     // integer registers.
     (Extension::Zfinx, Extension::F),
+    // CORE-V and T-Head use the same custom-0 encodings.
+    (Extension::XCVmem, Extension::XTheadBa),
+    (Extension::XCVmem, Extension::XTheadBb),
+    (Extension::XCVmem, Extension::XTheadBs),
+    (Extension::XCVmem, Extension::XTheadCmo),
+    (Extension::XCVmem, Extension::XTheadCondMov),
+    (Extension::XCVmem, Extension::XTheadFmv),
+    (Extension::XCVmem, Extension::XTheadInt),
+    (Extension::XCVmem, Extension::XTheadMac),
+    (Extension::XCVmem, Extension::XTheadMemIdx),
+    (Extension::XCVmem, Extension::XTheadMemPair),
+    (Extension::XCVmem, Extension::XTheadSync),
+    (Extension::XCVbi, Extension::XTheadFMemIdx),
+    (Extension::XCVelw, Extension::XTheadBb),
 ];
 
 /// Decodes instructions for a base ISA with a chosen set of extensions.
@@ -167,8 +181,8 @@ impl Decoder {
     ///
     /// assert_eq!(Decoder::from_march("rv64gc"), Ok(Decoder::RV64GC));
     /// assert_eq!(
-    ///     Decoder::from_march("rv64gc_xtheadba"),
-    ///     Err(MarchError::UnsupportedExtension("xtheadba")),
+    ///     Decoder::from_march("rv64gc_xventanacondops"),
+    ///     Err(MarchError::UnsupportedExtension("xventanacondops")),
     /// );
     /// ```
     pub fn from_march(march: &str) -> Result<Decoder, MarchError<'_>> {
@@ -401,5 +415,39 @@ mod tests {
         assert_eq!(trailing_version("zba1"), "1");
         assert_eq!(trailing_version("zba"), "");
         assert_eq!(trailing_version("zvl128b"), "");
+    }
+
+    /// The conflicts between vendor extensions are exactly the pairs whose
+    /// encodings overlap in the same base ISA, and no extension's encodings
+    /// overlap each other.
+    #[test]
+    fn vendor_conflicts_are_the_overlapping_encodings() {
+        use crate::opcodes::{MaskedOpcode, xcv, xthead};
+        let tables: [&[MaskedOpcode]; 2] = [&xthead::CUSTOM_0, &xcv::CUSTOM];
+        let entries = || tables.into_iter().flatten();
+        let vendor = |e: &MaskedOpcode| *e.op.requires.iter().find(|x| x.is_vendor()).unwrap();
+        let conflicts =
+            |a: Extension, b: Extension| CONFLICTS.contains(&(a, b)) || CONFLICTS.contains(&(b, a));
+        for (i, a) in entries().enumerate() {
+            for b in entries().skip(i + 1) {
+                let overlap =
+                    (a.bits ^ b.bits) & a.mask & b.mask == 0 && a.op.isas & b.op.isas != 0;
+                if !overlap {
+                    continue;
+                }
+                let (va, vb) = (vendor(a), vendor(b));
+                assert_ne!(va, vb, "{} and {} overlap", a.op.name, b.op.name);
+                assert!(conflicts(va, vb), "{} and {} overlap", a.op.name, b.op.name);
+            }
+        }
+        for &(a, b) in CONFLICTS.iter().filter(|(a, _)| a.is_vendor()) {
+            assert!(
+                entries().any(|x| vendor(x) == a
+                    && entries().any(|y| vendor(y) == b
+                        && (x.bits ^ y.bits) & x.mask & y.mask == 0
+                        && x.op.isas & y.op.isas != 0)),
+                "{a} and {b} do not overlap"
+            );
+        }
     }
 }

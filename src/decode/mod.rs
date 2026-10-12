@@ -116,6 +116,7 @@ fn holds(ins: &Instruction, c: Constraint) -> bool {
         Constraint::Rs2Eq(r) => ins.rs2 == r,
         Constraint::Rs2EqRs1 => ins.rs2 == ins.rs1,
         Constraint::RdEqRs1 => ins.rd == ins.rs1,
+        Constraint::RdEqRs2 => ins.rd == ins.rs2,
         Constraint::RdOdd => ins.rd & 1 == 1,
         Constraint::Rs2Odd => ins.rs2 & 1 == 1,
         Constraint::ImmEq(imm) | Constraint::CsrEq(imm) => ins.imm == imm,

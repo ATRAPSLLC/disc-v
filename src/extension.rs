@@ -191,6 +191,48 @@ extensions! {
     Smrnmi = "smrnmi",
     /// Control-transfer records (`sctrclr`).
     Ssctr = "ssctr",
+    /// T-Head address calculation (`th.addsl`).
+    XTheadBa = "xtheadba",
+    /// T-Head basic bit manipulation (`th.ext`, `th.ff1`, `th.rev`, ...).
+    XTheadBb = "xtheadbb",
+    /// T-Head single-bit test (`th.tst`).
+    XTheadBs = "xtheadbs",
+    /// T-Head cache management (`th.dcache.*`, `th.icache.*`, `th.l2cache.*`).
+    XTheadCmo = "xtheadcmo",
+    /// T-Head conditional moves (`th.mveqz`, `th.mvnez`).
+    XTheadCondMov = "xtheadcondmov",
+    /// T-Head indexed floating-point loads and stores (`th.flrw`, ...).
+    /// Implies F.
+    XTheadFMemIdx = "xtheadfmemidx",
+    /// T-Head moves of the upper half of a double-precision register on RV32
+    /// (`th.fmv.hw.x`, `th.fmv.x.hw`). Implies D.
+    XTheadFmv = "xtheadfmv",
+    /// T-Head interrupt register saving (`th.ipush`, `th.ipop`).
+    XTheadInt = "xtheadint",
+    /// T-Head multiply-accumulate (`th.mula`, ...).
+    XTheadMac = "xtheadmac",
+    /// T-Head indexed loads and stores, and loads and stores that update the
+    /// base register (`th.lrw`, `th.lbia`, ...).
+    XTheadMemIdx = "xtheadmemidx",
+    /// T-Head load and store pairs (`th.lwd`, `th.sdd`, ...).
+    XTheadMemPair = "xtheadmempair",
+    /// T-Head synchronization (`th.sync`, `th.sfence.vmas`, ...).
+    XTheadSync = "xtheadsync",
+    /// CORE-V ALU operations (`cv.abs`, `cv.clip`, `cv.addn`, ...).
+    XCValu = "xcvalu",
+    /// CORE-V branches with an immediate (`cv.beqimm`, `cv.bneimm`).
+    XCVbi = "xcvbi",
+    /// CORE-V bit manipulation (`cv.extract`, `cv.bset`, `cv.cnt`, ...).
+    XCVbitmanip = "xcvbitmanip",
+    /// CORE-V event load (`cv.elw`).
+    XCVelw = "xcvelw",
+    /// CORE-V multiply-accumulate (`cv.mac`, `cv.mulsn`, ...).
+    XCVmac = "xcvmac",
+    /// CORE-V post-increment and register-offset loads and stores (`cv.lw`,
+    /// `cv.sw`, ...).
+    XCVmem = "xcvmem",
+    /// CORE-V packed SIMD (`cv.add.h`, `cv.dotsp.b`, ...).
+    XCVsimd = "xcvsimd",
 }
 
 // Extensions are a bit set in a u128.
@@ -224,6 +266,8 @@ impl Extension {
             Zvbb | Zvbc | Zvkg | Zvkned | Zvknha | Zvksed | Zvksh | Zvfbfmin => &[V],
             Zvfbfwma => &[Zvfbfmin],
             Zvknhb => &[Zvknha],
+            XTheadFMemIdx => &[F],
+            XTheadFmv => &[D],
             _ => &[],
         }
     }
@@ -240,6 +284,11 @@ impl Extension {
             Zfhmin => Zhinxmin,
             ext => ext,
         }
+    }
+
+    /// Whether this is a vendor extension, such as XTheadBa.
+    pub(crate) const fn is_vendor(self) -> bool {
+        matches!(self.name().as_bytes(), [b'x', ..])
     }
 
     const fn bit(self) -> u128 {
@@ -273,14 +322,26 @@ impl Extensions {
     /// No extensions: only the base integer ISA.
     pub const EMPTY: Extensions = Extensions(0);
 
-    /// Every supported extension that does not conflict with another. This
-    /// is what [`decode`](fn@crate::decode) and the other free functions use.
-    pub const DEFAULT: Extensions = Extensions::of(Extension::ALL)
-        .without(Extension::E)
-        .without(Extension::Zcmp)
-        .without(Extension::Zcmt)
-        .without(Extension::Zclsd)
-        .without(Extension::Zfinx);
+    /// Every supported standard extension that does not conflict with
+    /// another. Vendor extensions are left out: they use the custom opcode
+    /// spaces, which each vendor's cores use differently. This is what
+    /// [`decode`](fn@crate::decode) and the other free functions use.
+    pub const DEFAULT: Extensions = {
+        let mut set = Extensions::of(Extension::ALL)
+            .without(Extension::E)
+            .without(Extension::Zcmp)
+            .without(Extension::Zcmt)
+            .without(Extension::Zclsd)
+            .without(Extension::Zfinx);
+        let mut i = 0;
+        while i < Extension::ALL.len() {
+            if Extension::ALL[i].is_vendor() {
+                set = set.without(Extension::ALL[i]);
+            }
+            i += 1;
+        }
+        set
+    };
 
     /// G and C: IMAFD, Zicsr, Zifencei and C, as in RV32GC and RV64GC.
     pub const GC: Extensions = {
@@ -323,6 +384,32 @@ impl Extensions {
     pub const RVA23S64: Extensions = {
         use Extension::*;
         Extensions::RVA23U64.union(Extensions::of(&[Zifencei, Svinval, H]))
+    };
+
+    /// Every T-Head vendor extension (XThead*), as in T-Head's C9xx cores.
+    pub const XTHEAD: Extensions = {
+        use Extension::*;
+        Extensions::of(&[
+            XTheadBa,
+            XTheadBb,
+            XTheadBs,
+            XTheadCmo,
+            XTheadCondMov,
+            XTheadFMemIdx,
+            XTheadFmv,
+            XTheadInt,
+            XTheadMac,
+            XTheadMemIdx,
+            XTheadMemPair,
+            XTheadSync,
+        ])
+    };
+
+    /// Every CORE-V vendor extension (XCV*), as in the OpenHW Group's
+    /// CV32E40P core.
+    pub const XCV: Extensions = {
+        use Extension::*;
+        Extensions::of(&[XCValu, XCVbi, XCVbitmanip, XCVelw, XCVmac, XCVmem, XCVsimd])
     };
 
     /// The extensions in `exts`, and the extensions they imply.
@@ -475,7 +562,8 @@ mod tests {
             assert_eq!(Extension::from_name(ext.name()), Some(ext));
         }
         assert_eq!(Extension::from_name("ZBA"), Some(Extension::Zba));
-        assert_eq!(Extension::from_name("xtheadba"), None);
+        assert_eq!(Extension::from_name("XTheadBa"), Some(Extension::XTheadBa));
+        assert_eq!(Extension::from_name("xventanacondops"), None);
     }
 
     #[test]

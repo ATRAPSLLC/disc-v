@@ -25,7 +25,7 @@ use std::fmt::Write as _;
 use std::path::PathBuf;
 use std::process::Command;
 
-use common::{Failures, Rng, embedded, inx, riscv_opcodes_samples, rve};
+use common::{Failures, Rng, corev, embedded, inx, riscv_opcodes_samples, rve, thead};
 use disc_v::{Decoder, Extension, Extensions, Isa};
 
 /// Extensions whose instructions binutils decodes even when they are not in
@@ -226,6 +226,20 @@ fn known_difference(
     {
         return Some("RV32E/RV64E register x16-x31");
     }
+    // binutils encodes cv.elw with funct3 6, the encoding of cv.beqimm,
+    // rather than 3.
+    let funct3 = (inst >> 12) & 7;
+    if inst & 0x7f == 0x0b
+        && (funct3 == 3 || funct3 == 6)
+        && (objdump.starts_with("cv.elw ") || disc_v.starts_with("cv.elw "))
+    {
+        return Some("cv.elw encoding");
+    }
+    // The CORE-V extensions are defined for RV32; objdump also decodes them
+    // for RV64.
+    if isa == Isa::Rv64 && objdump.starts_with("cv.") && disc_v.starts_with(".insn ") {
+        return Some("CORE-V on RV64");
+    }
     let mnemonic = |s: &str| s.split([' ', '.']).next().unwrap().to_string();
     // RV32 Zdinx reserves odd registers for double-precision operands, which
     // are even-odd pairs; objdump decodes them.
@@ -287,6 +301,21 @@ fn test_encodings(rng: &mut Rng) -> Vec<u32> {
             .filter(|&x| disc_v::inst_length(x as u16) == Some(4)),
     );
     insts.extend(riscv_opcodes_samples(rng, 64));
+    // Random encodings in the custom opcode spaces, where the vendor
+    // extensions are, some with a register field cleared to reach encodings
+    // with fixed register fields.
+    for opcode in [0x0b, 0x2b, 0x5b, 0x7b] {
+        insts.extend((0..50_000).map(|i| {
+            let fields = [0x1f << 7, 0x1f << 15, 0x1f << 20];
+            let cleared: u32 = fields
+                .iter()
+                .enumerate()
+                .filter(|&(bit, _)| (i >> bit) & 1 == 1 && i % 3 == 0)
+                .map(|(_, field)| field)
+                .sum();
+            (rng.next_u32() & !0x7f & !cleared) | opcode
+        }));
+    }
     insts
 }
 
@@ -305,6 +334,8 @@ fn matches_objdump() {
         ("embedded", embedded()),
         ("rve", rve()),
         ("inx", inx()),
+        ("thead", thead()),
+        ("corev", corev()),
     ];
     for (isa, (config, exts)) in [Isa::Rv32, Isa::Rv64]
         .into_iter()

@@ -262,6 +262,50 @@ fn floating_point_in_integer_registers() {
 }
 
 #[test]
+fn vendor_extensions() {
+    use Extension::*;
+    // Vendor extensions are not in the defaults.
+    check(Decoder::new(Isa::Rv64), 0x02c5950b, ".insn 4, 0x02c5950b");
+    let thead = Decoder::new(Isa::Rv64).with(XTheadBa).unwrap();
+    check(thead, 0x02c5950b, "th.addsl a0,a1,a2,1");
+    assert_eq!(
+        Decoder::from_march("rv64gc_xtheadba"),
+        Ok(Decoder::RV64GC.with(XTheadBa).unwrap())
+    );
+
+    let thead = Decoder::with_only(Isa::Rv64, Extensions::GC | Extensions::XTHEAD).unwrap();
+    check(thead, 0x5c85c50b, "th.lwia a0,(a1),8,2");
+    check(thead, 0x5805c58b, ".insn 4, 0x5805c58b"); // rd is the base
+    check(thead, 0xfab6450b, "th.ldd a0,a1,(a2),1,4");
+    check(thead, 0x1c35a50b, "th.ext a0,a1,7,3");
+    check(thead, 0x0180000b, "th.sync");
+    // th.srri uses only the low five bits of its immediate on RV32.
+    let rv32 = Decoder::with_only(Isa::Rv32, Extensions::GC | Extensions::XTHEAD).unwrap();
+    check(rv32, 0x1285950b, "th.srri a0,a1,40");
+    check(rv32, 0xfab6450b, ".insn 4, 0xfab6450b"); // th.ldd is RV64-only
+
+    // CORE-V is for RV32. cv.elw and cv.beqimm follow the CV32E40P manual.
+    let corev =
+        Decoder::with_only(Isa::Rv32, Extensions::from([M, C, Zicsr]) | Extensions::XCV).unwrap();
+    check(corev, 0x0105b50b, "cv.elw a0,16(a1)");
+    check(corev, 0x0055640b, "cv.beqimm a0,5,0x8");
+    check(corev, 0x0045850b, "cv.lb a0,(a1),4");
+    check(corev, 0x00c5a42b, "cv.sw a2,(a1),8");
+    check(corev, 0x00c5857b, "cv.add.h a0,a1,a2");
+    check(corev, 0x03f5e57b, "cv.add.sci.h a0,a1,-1");
+    let rv64 = Decoder::with_only(Isa::Rv64, Extensions::XCV).unwrap();
+    check(rv64, 0x00c5857b, ".insn 4, 0x00c5857b");
+
+    // T-Head and CORE-V use the same custom-0 encodings.
+    let conflict = Decoder::from_march("rv32imc_xcvmem_xtheadba").unwrap_err();
+    assert_eq!(conflict.to_string(), "xcvmem conflicts with xtheadba");
+    let dec = Decoder::new(Isa::Rv32).with(XCValu).unwrap();
+    assert!(dec.with(XTheadBa).is_ok());
+    // XTheadFMemIdx uses the floating-point registers.
+    assert!(Decoder::with_only(Isa::Rv64, [Zfinx, XTheadFMemIdx]).is_err());
+}
+
+#[test]
 fn compressed_bundle() {
     use Extension::*;
     let exts = Extensions::from([C, F, D]);
@@ -331,8 +375,8 @@ fn from_march() {
         Ok(Extensions::from([Extension::E, Extension::M, Extension::C])),
     );
     assert_eq!(
-        Decoder::from_march("rv64gc_xtheadba"),
-        Err(MarchError::UnsupportedExtension("xtheadba"))
+        Decoder::from_march("rv64gc_xventanacondops"),
+        Err(MarchError::UnsupportedExtension("xventanacondops"))
     );
     // Version numbers on single letters.
     let mc = Ok(Extensions::from([Extension::M, Extension::C]));
@@ -460,9 +504,11 @@ fn instructions_need_their_extensions() {
     failures.assert_none();
 }
 
-/// The test above covers every extension that defines instructions of its
-/// own. The rest only define aliases, which `aliases_need_their_extensions`
-/// covers, or (Zvknhb) share another extension's instructions.
+/// The test above covers every standard extension that defines instructions
+/// of its own. The rest only define aliases, which
+/// `aliases_need_their_extensions` covers, or (Zvknhb) share another
+/// extension's instructions. riscv-opcodes does not describe vendor
+/// extensions; `vendor_extensions` and tests/objdump.rs cover them.
 #[test]
 fn riscv_opcodes_covers_every_extension() {
     use Extension::*;

@@ -31,6 +31,8 @@
 //!   Zcd and so are only decoded by a [`Decoder`] that enables them
 //! - Zilsd; Zclsd, which conflicts with Zcf and so is only decoded by a
 //!   [`Decoder`] that enables it
+//! - T-Head and CORE-V vendor extensions, which are only decoded by a
+//!   [`Decoder`] that enables them
 //!
 //! The text follows GNU objdump's for a raw binary (`objdump -D -b binary`),
 //! so branch targets are written as `0x1008`.

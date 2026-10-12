@@ -99,7 +99,10 @@ fn instruction(ins: &Instruction) {
 /// Every extension, including those that are not in the defaults.
 fn every_extension() -> Extensions {
     use Extension::*;
-    Extensions::DEFAULT | Extensions::from([E, Zcmp, Zcmt, Zclsd, Zfinx, Zdinx, Zhinx, Zhinxmin])
+    Extensions::DEFAULT
+        | Extensions::from([E, Zcmp, Zcmt, Zclsd, Zfinx, Zdinx, Zhinx, Zhinxmin])
+        | Extensions::XTHEAD
+        | Extensions::XCV
 }
 
 /// An extension chosen by `n`.
@@ -230,6 +233,8 @@ fn extension_sets(bytes: &[u8; 256]) {
         Extensions::GC,
         Extensions::RVA23U64,
         Extensions::RVA23S64,
+        Extensions::XTHEAD,
+        Extensions::XCV,
     ] {
         debug(&set);
         output((set == Extensions::EMPTY) as usize);

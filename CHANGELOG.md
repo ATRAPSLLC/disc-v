@@ -6,6 +6,18 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- T-Head vendor extensions: XTheadBa, XTheadBb, XTheadBs, XTheadCmo,
+  XTheadCondMov, XTheadFMemIdx, XTheadFmv, XTheadInt, XTheadMac,
+  XTheadMemIdx, XTheadMemPair and XTheadSync, and the `Extensions::XTHEAD`
+  bundle.
+- CORE-V vendor extensions for RV32: XCValu, XCVbi, XCVbitmanip, XCVelw,
+  XCVmac, XCVmem and XCVsimd, and the `Extensions::XCV` bundle.
+- Vendor extensions are not in `Extensions::DEFAULT`, so the output of
+  `decode` and the other free functions is unchanged. `Decoder::from_march`
+  accepts their names (`rv64gc_xtheadba`).
+
 ## [0.1.2] - 2026-10-08
 
 ### Added

@@ -18,6 +18,8 @@ pub(crate) mod pseudo;
 pub(crate) mod q;
 pub(crate) mod system;
 pub(crate) mod v;
+pub(crate) mod xcv;
+pub(crate) mod xthead;
 pub(crate) mod zabha;
 pub(crate) mod zalasr;
 pub(crate) mod zawrs;
@@ -123,6 +125,33 @@ pub(crate) enum Codec {
     /// `vsetivli`: rd, a 5-bit AVL immediate in the rs1 field, and a 10-bit
     /// `vtype` immediate.
     VsetIvli,
+    /// rd, rs1 and an unsigned 6-bit immediate in bits 25:20 that, unlike a
+    /// shift amount, is not limited by XLEN (`th.srri`).
+    IUimm6,
+    /// rd, rs1, rs2 and a 2-bit immediate in bits 26:25 (`th.addsl`,
+    /// `th.lrw`).
+    RImm2,
+    /// rd, rs1, rs2 and a 5-bit immediate in bits 29:25 (`cv.addn`).
+    RImm5,
+    /// rd, rs1, and 6-bit immediates in bits 31:26 and 25:20 (`th.ext`).
+    ImmPair6,
+    /// rd, rs1, and 5-bit immediates in bits 29:25 and 24:20 (`cv.extract`).
+    ImmPair5,
+    /// rd, rs1, a signed 5-bit immediate in bits 24:20 and a 2-bit immediate
+    /// in bits 26:25 (`th.lbia`).
+    ImmUpdate,
+    /// rd, rs1, rs2, a 2-bit immediate in bits 26:25, and the shift that
+    /// scales it: 4 for doublewords (bits 31:27 all set), otherwise 3
+    /// (`th.lwd`).
+    Pair,
+    /// A branch on rs1 and a signed 5-bit immediate in the rs2 field
+    /// (`cv.beqimm`).
+    BImm5,
+    /// rd, rs1, and a signed 6-bit immediate with bits 5:1 in bits 24:20 and
+    /// bit 0 in bit 25 (`cv.add.sci.h`).
+    Simm6,
+    /// As [`Codec::Simm6`], unsigned.
+    Uimm6,
 }
 
 /// Operand format strings.
@@ -135,6 +164,7 @@ pub(crate) enum Codec {
 /// | `3` `4` `5` `6` | floating-point register `rd`, `rs1`, `rs2`, `rs3` |
 /// | `7` | `rs1` field as an unsigned immediate (CSR `zimm`) |
 /// | `i` | immediate, in decimal |
+/// | `j` | second immediate, in decimal |
 /// | `>` | shift amount, in hex |
 /// | `u` | upper immediate (bits 31:12), in hex |
 /// | `o` | target address of a PC-relative offset |
@@ -223,6 +253,7 @@ pub(crate) enum Constraint {
     RdOdd,
     /// rs2 is odd: not the first register of an even-odd pair.
     Rs2Odd,
+    RdEqRs2,
     ImmEq(i32),
     /// The immediate's bits in the mask (first) equal the value (second).
     ImmMaskEq(i32, i32),

@@ -218,6 +218,12 @@ pub(super) fn extract(ins: &mut Instruction, codec: Codec) {
             ins.rs2 = reg::ZERO;
             ins.imm = operand_shamt6(inst) as i32;
         }
+        Codec::IUimm6 => {
+            ins.rd = operand_rd(inst) as u8;
+            ins.rs1 = operand_rs1(inst) as u8;
+            ins.rs2 = reg::ZERO;
+            ins.imm = operand_shamt6(inst) as i32;
+        }
         Codec::ISh7 => {
             ins.rd = operand_rd(inst) as u8;
             ins.rs1 = operand_rs1(inst) as u8;
@@ -540,6 +546,51 @@ pub(super) fn extract(ins: &mut Instruction, codec: Codec) {
             ins.rs1 = operand_rs1(inst) as u8;
             ins.rs2 = reg::ZERO;
             ins.imm = ((inst >> 20) & 0x3ff) as i32;
+        }
+        Codec::RImm2 | Codec::RImm5 | Codec::Pair => {
+            ins.rd = operand_rd(inst) as u8;
+            ins.rs1 = operand_rs1(inst) as u8;
+            ins.rs2 = operand_rs2(inst) as u8;
+            ins.imm = match codec {
+                Codec::RImm5 => ((inst >> 25) & 0x1f) as i32,
+                _ => ((inst >> 25) & 3) as i32,
+            };
+            if codec == Codec::Pair {
+                ins.imm2 = if (inst >> 27) & 0x1f == 0x1f { 4 } else { 3 };
+            }
+        }
+        Codec::ImmPair6 | Codec::ImmPair5 => {
+            ins.rd = operand_rd(inst) as u8;
+            ins.rs1 = operand_rs1(inst) as u8;
+            ins.rs2 = reg::ZERO;
+            (ins.imm, ins.imm2) = match codec {
+                Codec::ImmPair6 => (((inst >> 26) & 0x3f) as i32, ((inst >> 20) & 0x3f) as i32),
+                _ => (((inst >> 25) & 0x1f) as i32, ((inst >> 20) & 0x1f) as i32),
+            };
+        }
+        Codec::ImmUpdate => {
+            ins.rd = operand_rd(inst) as u8;
+            ins.rs1 = operand_rs1(inst) as u8;
+            ins.rs2 = reg::ZERO;
+            ins.imm = ((inst as i64) << 39 >> 59) as i32;
+            ins.imm2 = ((inst >> 25) & 3) as i32;
+        }
+        Codec::BImm5 => {
+            ins.rd = reg::ZERO;
+            ins.rs1 = operand_rs1(inst) as u8;
+            ins.rs2 = reg::ZERO;
+            ins.imm = operand_sbimm12(inst);
+            ins.imm2 = ((inst as i64) << 39 >> 59) as i32;
+        }
+        Codec::Simm6 | Codec::Uimm6 => {
+            ins.rd = operand_rd(inst) as u8;
+            ins.rs1 = operand_rs1(inst) as u8;
+            ins.rs2 = reg::ZERO;
+            let imm = ((inst >> 19) & 0x3e) | ((inst >> 25) & 1);
+            ins.imm = match codec {
+                Codec::Simm6 => ((imm as i32) << 26) >> 26,
+                _ => imm as i32,
+            };
         }
         Codec::Illegal => {}
     }

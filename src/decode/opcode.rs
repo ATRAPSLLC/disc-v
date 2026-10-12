@@ -7,8 +7,8 @@
 //! Maps instruction encodings to opcode table entries.
 
 use crate::opcodes::{
-    Opcode, a, b, c, d, f, h, i, lookup_masked, m, q, system, v, zabha, zalasr, zawrs, zcb, zcmp,
-    zfa, zfbfmin, zfh, zicbo, zicond, zilsd, zimop, zk,
+    MaskedOpcode, Opcode, a, b, c, d, f, h, i, lookup_masked, m, q, system, v, xcv, xthead, zabha,
+    zalasr, zawrs, zcb, zcmp, zfa, zfbfmin, zfh, zicbo, zicond, zilsd, zimop, zk,
 };
 use crate::{Extension, Extensions, Isa};
 
@@ -894,7 +894,18 @@ fn custom3_rv128(inst: u64) -> Option<&'static Opcode> {
     }
 }
 
-fn uncompressed(isa: Isa, inst: u64) -> Option<&'static Opcode> {
+/// The vendor instruction for `inst` in a custom opcode space, from the
+/// enabled vendor extensions.
+fn custom(exts: Extensions, inst: u64) -> Option<&'static Opcode> {
+    let tables: [&'static [MaskedOpcode]; 2] = [&xthead::CUSTOM_0, &xcv::CUSTOM];
+    tables
+        .into_iter()
+        .flatten()
+        .find(|e| inst as u32 & e.mask == e.bits && e.op.provided_by(exts))
+        .map(|e| &e.op)
+}
+
+fn uncompressed(isa: Isa, exts: Extensions, inst: u64) -> Option<&'static Opcode> {
     match (inst >> 2) & 0x1f {
         0 => load(isa, inst),
         1 => load_fp(inst),
@@ -927,12 +938,13 @@ fn uncompressed(isa: Isa, inst: u64) -> Option<&'static Opcode> {
         20 => op_fp(inst),
         21 => lookup_masked(&v::OP_V, inst),
         29 => lookup_masked(&v::OP_VE, inst),
-        22 => custom2_rv128(inst),
+        22 if isa == Isa::Rv128 => custom2_rv128(inst),
+        30 if isa == Isa::Rv128 => custom3_rv128(inst),
+        2 | 10 | 22 | 30 => custom(exts, inst),
         24 => branch(inst),
         25 => jalr(inst),
         27 => Some(&i::JAL),
         28 => system_inst(inst),
-        30 => custom3_rv128(inst),
         _ => None,
     }
 }
@@ -969,6 +981,6 @@ pub(super) fn lookup(isa: Isa, exts: Extensions, inst: u64) -> Option<&'static O
         0 => compressed_0(isa, exts, inst),
         1 => compressed_1(isa, inst),
         2 => compressed_2(isa, exts, inst),
-        _ => uncompressed(isa, inst),
+        _ => uncompressed(isa, exts, inst),
     }
 }

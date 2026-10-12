@@ -78,6 +78,7 @@ fn write_part(out: &mut fmt::Formatter<'_>, ins: &Instruction, c: char) -> fmt::
         '6' => out.write_str(reg(fp_names, ins.rs3)),
         '7' => write!(out, "{}", ins.rs1),
         'i' => write!(out, "{}", ins.imm),
+        'j' => write!(out, "{}", ins.imm2),
         '>' => write!(out, "{:#x}", ins.imm),
         'u' => write!(out, "{:#x}", (ins.imm as u32 >> 12) & 0xfffff),
         'o' => write!(out, "{:#x}", ins.target()),

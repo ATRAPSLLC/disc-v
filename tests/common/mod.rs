@@ -165,6 +165,16 @@ pub fn inx() -> Extensions {
         .with(Zhinx)
 }
 
+/// The defaults with the T-Head vendor extensions.
+pub fn thead() -> Extensions {
+    Extensions::DEFAULT | Extensions::XTHEAD
+}
+
+/// The defaults with the CORE-V vendor extensions.
+pub fn corev() -> Extensions {
+    Extensions::DEFAULT | Extensions::XCV
+}
+
 /// `dec` with `ext` enabled, after disabling whatever conflicts with it.
 pub fn with_resolving_conflicts(mut dec: Decoder, ext: Extension) -> Decoder {
     loop {
