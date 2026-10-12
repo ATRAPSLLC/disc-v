@@ -6,6 +6,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-10-12
+
 ### Added
 
 - T-Head vendor extensions: XTheadBa, XTheadBb, XTheadBs, XTheadCmo,
@@ -127,7 +129,8 @@ Initial release.
   1.85.1.
 - Tests against the encodings in riscv-opcodes and against GNU objdump.
 
-[Unreleased]: https://github.com/swenson/disc-v/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/swenson/disc-v/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/swenson/disc-v/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/swenson/disc-v/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/swenson/disc-v/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/swenson/disc-v/releases/tag/v0.1.0
