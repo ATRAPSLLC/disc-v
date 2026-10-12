@@ -4,7 +4,7 @@
 //! Byte and halfword atomics (Zabha) and compare-and-swap (Zacas).
 
 use super::Constraint::*;
-use super::{Codec, Opcode, fmt};
+use super::{Codec, Extra, Opcode, fmt};
 use crate::Extension;
 
 pub(crate) static AMOSWAP_B: Opcode =
@@ -50,14 +50,20 @@ pub(crate) static AMOCAS_D: Opcode = Opcode::new("amocas.d", Codec::RA, fmt::RD_
     .rv64();
 /// On RV32, `amocas.d` operates on even-odd register pairs.
 pub(crate) static AMOCAS_D_RV32: Opcode = Opcode {
-    illegal_if: &[RdOdd, Rs2Odd],
+    extra: &Extra {
+        illegal_if: &[RdOdd, Rs2Odd],
+        ..Extra::NONE
+    },
     ..Opcode::new("amocas.d", Codec::RA, fmt::RD_RS2_ADDR_RS1)
         .requires(&[Extension::Zacas])
         .rv32_only()
 };
 /// `amocas.q` operates on even-odd register pairs.
 pub(crate) static AMOCAS_Q: Opcode = Opcode {
-    illegal_if: &[RdOdd, Rs2Odd],
+    extra: &Extra {
+        illegal_if: &[RdOdd, Rs2Odd],
+        ..Extra::NONE
+    },
     ..Opcode::new("amocas.q", Codec::RA, fmt::RD_RS2_ADDR_RS1)
         .requires(&[Extension::Zacas])
         .rv64_only()

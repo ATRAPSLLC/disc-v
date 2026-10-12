@@ -12,3 +12,30 @@ keywords = ["riscv", "risc-v", "disassembler", "decoder", "objdump"]
 categories = ["development-tools", "no-std"]
 include = ["/src", "/tests", "/scripts", "/README.md", "/CHANGELOG.md", "/LICENSE", "/NOTICE"]
 
+[features]
+default = ["vector", "vendor-thead", "vendor-corev"]
+# The vector extensions: V, Zvbb, Zvbc, Zvkg, Zvkned, Zvknha, Zvknhb,
+# Zvksed, Zvksh, Zvfbfmin and Zvfbfwma.
+vector = []
+# The T-Head vendor extensions (XThead*).
+vendor-thead = []
+# The CORE-V vendor extensions (XCV*).
+vendor-corev = []
+
+# These tests check instructions from every table.
+[[test]]
+name = "decode"
+required-features = ["vector", "vendor-thead", "vendor-corev"]
+
+[[test]]
+name = "decoder"
+required-features = ["vector", "vendor-thead", "vendor-corev"]
+
+[[test]]
+name = "objdump"
+required-features = ["vector", "vendor-thead", "vendor-corev"]
+
+[[test]]
+name = "riscv_opcodes"
+required-features = ["vector", "vendor-thead", "vendor-corev"]
+

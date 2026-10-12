@@ -4,22 +4,28 @@
 //! H: the hypervisor extension, and its Svinval invalidation instructions.
 
 use super::Constraint::*;
-use super::{Codec, Opcode, Pseudo, fmt};
+use super::{Codec, Extra, Opcode, Pseudo, fmt};
 use crate::Extension;
 use crate::reg;
 
 pub(crate) static HFENCE_VVMA: Opcode = Opcode {
-    pseudo: &[
-        Pseudo::new(&HFENCE_VVMA_ALL, &[Rs1Eq(reg::ZERO), Rs2Eq(reg::ZERO)]),
-        Pseudo::new(&HFENCE_VVMA_RS1, &[Rs2Eq(reg::ZERO)]),
-    ],
+    extra: &Extra {
+        pseudo: &[
+            Pseudo::new(&HFENCE_VVMA_ALL, &[Rs1Eq(reg::ZERO), Rs2Eq(reg::ZERO)]),
+            Pseudo::new(&HFENCE_VVMA_RS1, &[Rs2Eq(reg::ZERO)]),
+        ],
+        ..Extra::NONE
+    },
     ..Opcode::new("hfence.vvma", Codec::R, fmt::RS1_RS2).requires(&[Extension::H])
 };
 pub(crate) static HFENCE_GVMA: Opcode = Opcode {
-    pseudo: &[
-        Pseudo::new(&HFENCE_GVMA_ALL, &[Rs1Eq(reg::ZERO), Rs2Eq(reg::ZERO)]),
-        Pseudo::new(&HFENCE_GVMA_RS1, &[Rs2Eq(reg::ZERO)]),
-    ],
+    extra: &Extra {
+        pseudo: &[
+            Pseudo::new(&HFENCE_GVMA_ALL, &[Rs1Eq(reg::ZERO), Rs2Eq(reg::ZERO)]),
+            Pseudo::new(&HFENCE_GVMA_RS1, &[Rs2Eq(reg::ZERO)]),
+        ],
+        ..Extra::NONE
+    },
     ..Opcode::new("hfence.gvma", Codec::R, fmt::RS1_RS2).requires(&[Extension::H])
 };
 static HFENCE_VVMA_ALL: Opcode = Opcode::new("hfence.vvma", Codec::R, fmt::NONE);

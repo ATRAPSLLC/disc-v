@@ -12,21 +12,29 @@ cd "$(dirname "$0")/../panic-check"
 # opt-level 1 is left out: it keeps a panic in core's Debug for structs.
 targets=(riscv32imc-unknown-none-elf thumbv7em-none-eabi)
 opt_levels=(2 3 s z)
+# disc-v's default features, and none.
+feature_sets=("" "--no-default-features")
 
 failed=()
-for target in "${targets[@]}"; do
-    for opt in "${opt_levels[@]}"; do
-        echo "== $target, opt-level $opt"
-        if ! CARGO_PROFILE_RELEASE_OPT_LEVEL=$opt cargo build --quiet --release --target "$target"; then
-            failed+=("$target opt-level $opt")
-            # The panic sites are listed from the RISC-V build.
-            if [ "$target" = riscv32imc-unknown-none-elf ]; then
-                CARGO_PROFILE_RELEASE_OPT_LEVEL=$opt cargo build --quiet --release \
-                    --target "$target" --features diagnose &&
-                    python3 -I ../scripts/panic-sites.py \
-                        "target/$target/release/disc-v-panic-check"
+for features in "${feature_sets[@]}"; do
+    for target in "${targets[@]}"; do
+        for opt in "${opt_levels[@]}"; do
+            echo "== $target, opt-level $opt ${features:-(default features)}"
+            # $features is empty or a single flag.
+            # shellcheck disable=SC2086
+            if ! CARGO_PROFILE_RELEASE_OPT_LEVEL=$opt cargo build --quiet --release \
+                --target "$target" $features; then
+                failed+=("$target opt-level $opt ${features:-(default features)}")
+                # The panic sites are listed from the RISC-V build.
+                if [ "$target" = riscv32imc-unknown-none-elf ]; then
+                    # shellcheck disable=SC2086
+                    CARGO_PROFILE_RELEASE_OPT_LEVEL=$opt cargo build --quiet --release \
+                        --target "$target" $features --features diagnose &&
+                        python3 -I ../scripts/panic-sites.py \
+                            "target/$target/release/disc-v-panic-check"
+                fi
             fi
-        fi
+        done
     done
 done
 

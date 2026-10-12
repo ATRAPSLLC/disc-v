@@ -6,10 +6,16 @@
 
 //! Maps instruction encodings to opcode table entries.
 
+#[cfg(feature = "vendor-corev")]
+use crate::opcodes::xcv;
+#[cfg(feature = "vendor-thead")]
+use crate::opcodes::xthead;
 use crate::opcodes::{
-    MaskedOpcode, Opcode, a, b, c, d, f, h, i, lookup_masked, m, q, system, v, xcv, xthead, zabha,
-    zalasr, zawrs, zcb, zcmp, zfa, zfbfmin, zfh, zicbo, zicond, zilsd, zimop, zk,
+    MaskedOpcode, Opcode, a, b, c, d, f, h, i, m, q, system, zabha, zalasr, zawrs, zcb, zcmp, zfa,
+    zfbfmin, zfh, zicbo, zicond, zilsd, zimop, zk,
 };
+#[cfg(feature = "vector")]
+use crate::opcodes::{lookup_masked, v};
 use crate::{Extension, Extensions, Isa};
 
 fn compressed_0(isa: Isa, exts: Extensions, inst: u64) -> Option<&'static Opcode> {
@@ -185,7 +191,10 @@ fn load_fp(inst: u64) -> Option<&'static Opcode> {
         2 => Some(&f::FLW),
         3 => Some(&d::FLD),
         4 => Some(&q::FLQ),
+        #[cfg(feature = "vector")]
         _ => lookup_masked(&v::LOAD_FP, inst),
+        #[cfg(not(feature = "vector"))]
+        _ => None,
     }
 }
 
@@ -375,7 +384,10 @@ fn store_fp(inst: u64) -> Option<&'static Opcode> {
         2 => Some(&f::FSW),
         3 => Some(&d::FSD),
         4 => Some(&q::FSQ),
+        #[cfg(feature = "vector")]
         _ => lookup_masked(&v::STORE_FP, inst),
+        #[cfg(not(feature = "vector"))]
+        _ => None,
     }
 }
 
@@ -897,9 +909,15 @@ fn custom3_rv128(inst: u64) -> Option<&'static Opcode> {
 /// The vendor instruction for `inst` in a custom opcode space, from the
 /// enabled vendor extensions.
 fn custom(exts: Extensions, inst: u64) -> Option<&'static Opcode> {
-    let tables: [&'static [MaskedOpcode]; 2] = [&xthead::CUSTOM_0, &xcv::CUSTOM];
+    let tables: &[&'static [MaskedOpcode]] = &[
+        #[cfg(feature = "vendor-thead")]
+        &xthead::CUSTOM_0,
+        #[cfg(feature = "vendor-corev")]
+        &xcv::CUSTOM,
+    ];
     tables
-        .into_iter()
+        .iter()
+        .copied()
         .flatten()
         .find(|e| inst as u32 & e.mask == e.bits && e.op.provided_by(exts))
         .map(|e| &e.op)
@@ -936,7 +954,9 @@ fn uncompressed(isa: Isa, exts: Extensions, inst: u64) -> Option<&'static Opcode
         18 => nmsub(inst),
         19 => nmadd(inst),
         20 => op_fp(inst),
+        #[cfg(feature = "vector")]
         21 => lookup_masked(&v::OP_V, inst),
+        #[cfg(feature = "vector")]
         29 => lookup_masked(&v::OP_VE, inst),
         22 if isa == Isa::Rv128 => custom2_rv128(inst),
         30 if isa == Isa::Rv128 => custom3_rv128(inst),

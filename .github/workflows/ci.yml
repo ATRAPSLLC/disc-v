@@ -58,6 +58,23 @@ jobs:
         env:
           DISC_V_REQUIRE_BINUTILS: 1
 
+  # Reduced feature sets, as embedded users build them; the jobs above use
+  # the default features.
+  features:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo clippy --all-targets --no-default-features
+      - run: cargo clippy --all-targets --no-default-features --features vector
+      - run: cargo clippy --all-targets --no-default-features --features vendor-thead,vendor-corev
+      - run: cargo test --no-default-features
+      - run: cargo test --no-default-features --features vector
+      - run: cargo test --no-default-features --features vendor-thead,vendor-corev
+
   docs:
     runs-on: ubuntu-26.04
     steps:
@@ -78,6 +95,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo build --release --target thumbv7em-none-eabi
       - run: cargo build --release --target riscv32imc-unknown-none-elf
+      - run: cargo build --release --no-default-features --target riscv32imc-unknown-none-elf
 
   panic-check:
     name: panic check (${{ matrix.rust }})

@@ -7,14 +7,22 @@
 //! Bit-manipulation extensions: Zba, Zbb, Zbc and Zbs.
 
 use super::Constraint::*;
-use super::{Codec, Opcode, Pseudo, fmt};
+use super::{Codec, Extra, Opcode, Pseudo, fmt};
 use crate::Extension;
 use crate::reg;
 
-pub(crate) static ANDN: Opcode =
-    Opcode::new("andn", Codec::R, fmt::RD_RS1_RS2).requires_any(&[Extension::Zbb, Extension::Zbkb]);
+pub(crate) static ANDN: Opcode = Opcode {
+    extra: &Extra {
+        requires_any: &[Extension::Zbb, Extension::Zbkb],
+        ..Extra::NONE
+    },
+    ..Opcode::new("andn", Codec::R, fmt::RD_RS1_RS2)
+};
 pub(crate) static ADD_UW: Opcode = Opcode {
-    pseudo: &[Pseudo::new(&ZEXT_W, &[Rs2Eq(reg::ZERO)])],
+    extra: &Extra {
+        pseudo: &[Pseudo::new(&ZEXT_W, &[Rs2Eq(reg::ZERO)])],
+        ..Extra::NONE
+    },
     ..Opcode::new("add.uw", Codec::R, fmt::RD_RS1_RS2)
         .requires(&[Extension::Zba])
         .rv64()
@@ -43,10 +51,20 @@ pub(crate) static BINVI: Opcode =
     Opcode::new("binvi", Codec::ISh5, fmt::RD_RS1_SHAMT).requires(&[Extension::Zbs]);
 pub(crate) static BINVI_64: Opcode =
     Opcode::new("binvi", Codec::ISh6, fmt::RD_RS1_SHAMT).requires(&[Extension::Zbs]);
-pub(crate) static CLMUL: Opcode = Opcode::new("clmul", Codec::R, fmt::RD_RS1_RS2)
-    .requires_any(&[Extension::Zbc, Extension::Zbkc]);
-pub(crate) static CLMULH: Opcode = Opcode::new("clmulh", Codec::R, fmt::RD_RS1_RS2)
-    .requires_any(&[Extension::Zbc, Extension::Zbkc]);
+pub(crate) static CLMUL: Opcode = Opcode {
+    extra: &Extra {
+        requires_any: &[Extension::Zbc, Extension::Zbkc],
+        ..Extra::NONE
+    },
+    ..Opcode::new("clmul", Codec::R, fmt::RD_RS1_RS2)
+};
+pub(crate) static CLMULH: Opcode = Opcode {
+    extra: &Extra {
+        requires_any: &[Extension::Zbc, Extension::Zbkc],
+        ..Extra::NONE
+    },
+    ..Opcode::new("clmulh", Codec::R, fmt::RD_RS1_RS2)
+};
 pub(crate) static CLMULR: Opcode =
     Opcode::new("clmulr", Codec::R, fmt::RD_RS1_RS2).requires(&[Extension::Zbc]);
 pub(crate) static CLZ: Opcode =
@@ -74,27 +92,69 @@ pub(crate) static MINU: Opcode =
     Opcode::new("minu", Codec::R, fmt::RD_RS1_RS2).requires(&[Extension::Zbb]);
 pub(crate) static ORC_B: Opcode =
     Opcode::new("orc.b", Codec::R, fmt::RD_RS1).requires(&[Extension::Zbb]);
-pub(crate) static ORN: Opcode =
-    Opcode::new("orn", Codec::R, fmt::RD_RS1_RS2).requires_any(&[Extension::Zbb, Extension::Zbkb]);
-pub(crate) static REV8: Opcode =
-    Opcode::new("rev8", Codec::R, fmt::RD_RS1).requires_any(&[Extension::Zbb, Extension::Zbkb]);
-pub(crate) static ROL: Opcode =
-    Opcode::new("rol", Codec::R, fmt::RD_RS1_RS2).requires_any(&[Extension::Zbb, Extension::Zbkb]);
-pub(crate) static ROLW: Opcode = Opcode::new("rolw", Codec::R, fmt::RD_RS1_RS2)
-    .requires_any(&[Extension::Zbb, Extension::Zbkb])
-    .rv64();
-pub(crate) static ROR: Opcode =
-    Opcode::new("ror", Codec::R, fmt::RD_RS1_RS2).requires_any(&[Extension::Zbb, Extension::Zbkb]);
-pub(crate) static RORI: Opcode = Opcode::new("rori", Codec::ISh5, fmt::RD_RS1_SHAMT)
-    .requires_any(&[Extension::Zbb, Extension::Zbkb]);
-pub(crate) static RORI_64: Opcode = Opcode::new("rori", Codec::ISh6, fmt::RD_RS1_SHAMT)
-    .requires_any(&[Extension::Zbb, Extension::Zbkb]);
-pub(crate) static RORIW: Opcode = Opcode::new("roriw", Codec::ISh5, fmt::RD_RS1_SHAMT)
-    .requires_any(&[Extension::Zbb, Extension::Zbkb])
-    .rv64();
-pub(crate) static RORW: Opcode = Opcode::new("rorw", Codec::R, fmt::RD_RS1_RS2)
-    .requires_any(&[Extension::Zbb, Extension::Zbkb])
-    .rv64();
+pub(crate) static ORN: Opcode = Opcode {
+    extra: &Extra {
+        requires_any: &[Extension::Zbb, Extension::Zbkb],
+        ..Extra::NONE
+    },
+    ..Opcode::new("orn", Codec::R, fmt::RD_RS1_RS2)
+};
+pub(crate) static REV8: Opcode = Opcode {
+    extra: &Extra {
+        requires_any: &[Extension::Zbb, Extension::Zbkb],
+        ..Extra::NONE
+    },
+    ..Opcode::new("rev8", Codec::R, fmt::RD_RS1)
+};
+pub(crate) static ROL: Opcode = Opcode {
+    extra: &Extra {
+        requires_any: &[Extension::Zbb, Extension::Zbkb],
+        ..Extra::NONE
+    },
+    ..Opcode::new("rol", Codec::R, fmt::RD_RS1_RS2)
+};
+pub(crate) static ROLW: Opcode = Opcode {
+    extra: &Extra {
+        requires_any: &[Extension::Zbb, Extension::Zbkb],
+        ..Extra::NONE
+    },
+    ..Opcode::new("rolw", Codec::R, fmt::RD_RS1_RS2).rv64()
+};
+pub(crate) static ROR: Opcode = Opcode {
+    extra: &Extra {
+        requires_any: &[Extension::Zbb, Extension::Zbkb],
+        ..Extra::NONE
+    },
+    ..Opcode::new("ror", Codec::R, fmt::RD_RS1_RS2)
+};
+pub(crate) static RORI: Opcode = Opcode {
+    extra: &Extra {
+        requires_any: &[Extension::Zbb, Extension::Zbkb],
+        ..Extra::NONE
+    },
+    ..Opcode::new("rori", Codec::ISh5, fmt::RD_RS1_SHAMT)
+};
+pub(crate) static RORI_64: Opcode = Opcode {
+    extra: &Extra {
+        requires_any: &[Extension::Zbb, Extension::Zbkb],
+        ..Extra::NONE
+    },
+    ..Opcode::new("rori", Codec::ISh6, fmt::RD_RS1_SHAMT)
+};
+pub(crate) static RORIW: Opcode = Opcode {
+    extra: &Extra {
+        requires_any: &[Extension::Zbb, Extension::Zbkb],
+        ..Extra::NONE
+    },
+    ..Opcode::new("roriw", Codec::ISh5, fmt::RD_RS1_SHAMT).rv64()
+};
+pub(crate) static RORW: Opcode = Opcode {
+    extra: &Extra {
+        requires_any: &[Extension::Zbb, Extension::Zbkb],
+        ..Extra::NONE
+    },
+    ..Opcode::new("rorw", Codec::R, fmt::RD_RS1_RS2).rv64()
+};
 pub(crate) static SEXT_B: Opcode =
     Opcode::new("sext.b", Codec::R, fmt::RD_RS1).requires(&[Extension::Zbb]);
 pub(crate) static SEXT_H: Opcode =
@@ -117,9 +177,19 @@ pub(crate) static SH3ADD_UW: Opcode = Opcode::new("sh3add.uw", Codec::R, fmt::RD
 pub(crate) static SLLI_UW: Opcode = Opcode::new("slli.uw", Codec::ISh6, fmt::RD_RS1_SHAMT)
     .requires(&[Extension::Zba])
     .rv64();
-pub(crate) static XNOR: Opcode =
-    Opcode::new("xnor", Codec::R, fmt::RD_RS1_RS2).requires_any(&[Extension::Zbb, Extension::Zbkb]);
-pub(crate) static ZEXT_H: Opcode =
-    Opcode::new("zext.h", Codec::R, fmt::RD_RS1).requires_any(&[Extension::Zbb, Extension::Zbkb]);
+pub(crate) static XNOR: Opcode = Opcode {
+    extra: &Extra {
+        requires_any: &[Extension::Zbb, Extension::Zbkb],
+        ..Extra::NONE
+    },
+    ..Opcode::new("xnor", Codec::R, fmt::RD_RS1_RS2)
+};
+pub(crate) static ZEXT_H: Opcode = Opcode {
+    extra: &Extra {
+        requires_any: &[Extension::Zbb, Extension::Zbkb],
+        ..Extra::NONE
+    },
+    ..Opcode::new("zext.h", Codec::R, fmt::RD_RS1)
+};
 pub(crate) static ZEXT_W: Opcode =
     Opcode::new("zext.w", Codec::R, fmt::RD_RS1).requires(&[Extension::Zba]);

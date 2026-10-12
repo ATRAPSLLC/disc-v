@@ -12,7 +12,7 @@
 //! instructions as in LLVM, and the operand syntax is objdump's.
 
 use super::Constraint::*;
-use super::{Codec, MaskedOpcode, Opcode, masked};
+use super::{Codec, Extra, MaskedOpcode, Opcode, masked};
 use crate::Extension;
 
 pub(crate) static CUSTOM_0: [MaskedOpcode; 106] = [
@@ -310,7 +310,10 @@ pub(crate) static CUSTOM_0: [MaskedOpcode; 106] = [
         0x1800400b,
         0xf800707f,
         Opcode {
-            illegal_if: &[RdEqRs1],
+            extra: &Extra {
+                illegal_if: &[RdEqRs1],
+                ..Extra::NONE
+            },
             ..Opcode::new("th.lbia", Codec::ImmUpdate, "0,(1),i,j")
                 .requires(&[Extension::XTheadMemIdx])
         },
@@ -319,7 +322,10 @@ pub(crate) static CUSTOM_0: [MaskedOpcode; 106] = [
         0x0800400b,
         0xf800707f,
         Opcode {
-            illegal_if: &[RdEqRs1],
+            extra: &Extra {
+                illegal_if: &[RdEqRs1],
+                ..Extra::NONE
+            },
             ..Opcode::new("th.lbib", Codec::ImmUpdate, "0,(1),i,j")
                 .requires(&[Extension::XTheadMemIdx])
         },
@@ -328,7 +334,10 @@ pub(crate) static CUSTOM_0: [MaskedOpcode; 106] = [
         0x9800400b,
         0xf800707f,
         Opcode {
-            illegal_if: &[RdEqRs1],
+            extra: &Extra {
+                illegal_if: &[RdEqRs1],
+                ..Extra::NONE
+            },
             ..Opcode::new("th.lbuia", Codec::ImmUpdate, "0,(1),i,j")
                 .requires(&[Extension::XTheadMemIdx])
         },
@@ -337,7 +346,10 @@ pub(crate) static CUSTOM_0: [MaskedOpcode; 106] = [
         0x8800400b,
         0xf800707f,
         Opcode {
-            illegal_if: &[RdEqRs1],
+            extra: &Extra {
+                illegal_if: &[RdEqRs1],
+                ..Extra::NONE
+            },
             ..Opcode::new("th.lbuib", Codec::ImmUpdate, "0,(1),i,j")
                 .requires(&[Extension::XTheadMemIdx])
         },
@@ -346,7 +358,10 @@ pub(crate) static CUSTOM_0: [MaskedOpcode; 106] = [
         0x3800400b,
         0xf800707f,
         Opcode {
-            illegal_if: &[RdEqRs1],
+            extra: &Extra {
+                illegal_if: &[RdEqRs1],
+                ..Extra::NONE
+            },
             ..Opcode::new("th.lhia", Codec::ImmUpdate, "0,(1),i,j")
                 .requires(&[Extension::XTheadMemIdx])
         },
@@ -355,7 +370,10 @@ pub(crate) static CUSTOM_0: [MaskedOpcode; 106] = [
         0x2800400b,
         0xf800707f,
         Opcode {
-            illegal_if: &[RdEqRs1],
+            extra: &Extra {
+                illegal_if: &[RdEqRs1],
+                ..Extra::NONE
+            },
             ..Opcode::new("th.lhib", Codec::ImmUpdate, "0,(1),i,j")
                 .requires(&[Extension::XTheadMemIdx])
         },
@@ -364,7 +382,10 @@ pub(crate) static CUSTOM_0: [MaskedOpcode; 106] = [
         0xb800400b,
         0xf800707f,
         Opcode {
-            illegal_if: &[RdEqRs1],
+            extra: &Extra {
+                illegal_if: &[RdEqRs1],
+                ..Extra::NONE
+            },
             ..Opcode::new("th.lhuia", Codec::ImmUpdate, "0,(1),i,j")
                 .requires(&[Extension::XTheadMemIdx])
         },
@@ -373,7 +394,10 @@ pub(crate) static CUSTOM_0: [MaskedOpcode; 106] = [
         0xa800400b,
         0xf800707f,
         Opcode {
-            illegal_if: &[RdEqRs1],
+            extra: &Extra {
+                illegal_if: &[RdEqRs1],
+                ..Extra::NONE
+            },
             ..Opcode::new("th.lhuib", Codec::ImmUpdate, "0,(1),i,j")
                 .requires(&[Extension::XTheadMemIdx])
         },
@@ -382,7 +406,10 @@ pub(crate) static CUSTOM_0: [MaskedOpcode; 106] = [
         0x5800400b,
         0xf800707f,
         Opcode {
-            illegal_if: &[RdEqRs1],
+            extra: &Extra {
+                illegal_if: &[RdEqRs1],
+                ..Extra::NONE
+            },
             ..Opcode::new("th.lwia", Codec::ImmUpdate, "0,(1),i,j")
                 .requires(&[Extension::XTheadMemIdx])
         },
@@ -391,7 +418,10 @@ pub(crate) static CUSTOM_0: [MaskedOpcode; 106] = [
         0x4800400b,
         0xf800707f,
         Opcode {
-            illegal_if: &[RdEqRs1],
+            extra: &Extra {
+                illegal_if: &[RdEqRs1],
+                ..Extra::NONE
+            },
             ..Opcode::new("th.lwib", Codec::ImmUpdate, "0,(1),i,j")
                 .requires(&[Extension::XTheadMemIdx])
         },
@@ -400,7 +430,10 @@ pub(crate) static CUSTOM_0: [MaskedOpcode; 106] = [
         0xd800400b,
         0xf800707f,
         Opcode {
-            illegal_if: &[RdEqRs1],
+            extra: &Extra {
+                illegal_if: &[RdEqRs1],
+                ..Extra::NONE
+            },
             ..Opcode::new("th.lwuia", Codec::ImmUpdate, "0,(1),i,j")
                 .requires(&[Extension::XTheadMemIdx])
                 .rv64()
@@ -410,7 +443,10 @@ pub(crate) static CUSTOM_0: [MaskedOpcode; 106] = [
         0xc800400b,
         0xf800707f,
         Opcode {
-            illegal_if: &[RdEqRs1],
+            extra: &Extra {
+                illegal_if: &[RdEqRs1],
+                ..Extra::NONE
+            },
             ..Opcode::new("th.lwuib", Codec::ImmUpdate, "0,(1),i,j")
                 .requires(&[Extension::XTheadMemIdx])
                 .rv64()
@@ -420,7 +456,10 @@ pub(crate) static CUSTOM_0: [MaskedOpcode; 106] = [
         0x7800400b,
         0xf800707f,
         Opcode {
-            illegal_if: &[RdEqRs1],
+            extra: &Extra {
+                illegal_if: &[RdEqRs1],
+                ..Extra::NONE
+            },
             ..Opcode::new("th.ldia", Codec::ImmUpdate, "0,(1),i,j")
                 .requires(&[Extension::XTheadMemIdx])
                 .rv64()
@@ -430,7 +469,10 @@ pub(crate) static CUSTOM_0: [MaskedOpcode; 106] = [
         0x6800400b,
         0xf800707f,
         Opcode {
-            illegal_if: &[RdEqRs1],
+            extra: &Extra {
+                illegal_if: &[RdEqRs1],
+                ..Extra::NONE
+            },
             ..Opcode::new("th.ldib", Codec::ImmUpdate, "0,(1),i,j")
                 .requires(&[Extension::XTheadMemIdx])
                 .rv64()
@@ -606,7 +648,10 @@ pub(crate) static CUSTOM_0: [MaskedOpcode; 106] = [
         0xe000400b,
         0xf800707f,
         Opcode {
-            illegal_if: &[RdEqRs1, Rs2EqRs1, RdEqRs2],
+            extra: &Extra {
+                illegal_if: &[RdEqRs1, Rs2EqRs1, RdEqRs2],
+                ..Extra::NONE
+            },
             ..Opcode::new("th.lwd", Codec::Pair, "0,2,(1),i,j")
                 .requires(&[Extension::XTheadMemPair])
         },
@@ -615,7 +660,10 @@ pub(crate) static CUSTOM_0: [MaskedOpcode; 106] = [
         0xf000400b,
         0xf800707f,
         Opcode {
-            illegal_if: &[RdEqRs1, Rs2EqRs1, RdEqRs2],
+            extra: &Extra {
+                illegal_if: &[RdEqRs1, Rs2EqRs1, RdEqRs2],
+                ..Extra::NONE
+            },
             ..Opcode::new("th.lwud", Codec::Pair, "0,2,(1),i,j")
                 .requires(&[Extension::XTheadMemPair])
         },
@@ -624,7 +672,10 @@ pub(crate) static CUSTOM_0: [MaskedOpcode; 106] = [
         0xf800400b,
         0xf800707f,
         Opcode {
-            illegal_if: &[RdEqRs1, Rs2EqRs1, RdEqRs2],
+            extra: &Extra {
+                illegal_if: &[RdEqRs1, Rs2EqRs1, RdEqRs2],
+                ..Extra::NONE
+            },
             ..Opcode::new("th.ldd", Codec::Pair, "0,2,(1),i,j")
                 .requires(&[Extension::XTheadMemPair])
                 .rv64()

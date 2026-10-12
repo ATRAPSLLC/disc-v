@@ -17,8 +17,11 @@ pub(crate) mod m;
 pub(crate) mod pseudo;
 pub(crate) mod q;
 pub(crate) mod system;
+#[cfg(feature = "vector")]
 pub(crate) mod v;
+#[cfg(feature = "vendor-corev")]
 pub(crate) mod xcv;
+#[cfg(feature = "vendor-thead")]
 pub(crate) mod xthead;
 pub(crate) mod zabha;
 pub(crate) mod zalasr;
@@ -36,11 +39,17 @@ pub(crate) mod zk;
 
 use crate::{Extension, Extensions, Isa};
 
+// Some codecs, constraints and table helpers are only used by the tables
+// that the `vector` and vendor features add.
 /// How an instruction's operands are laid out in its encoding.
 ///
 /// The names follow the instruction formats in the RISC-V specification
 /// (R, I, S, SB, U, UJ, and the compressed CR, CI, CSS, CIW, CL, CS, CB, CJ),
 /// with a suffix where a format has several immediate layouts.
+#[cfg_attr(
+    not(all(feature = "vector", feature = "vendor-thead", feature = "vendor-corev")),
+    allow(dead_code)
+)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum Codec {
     Li,
@@ -242,6 +251,10 @@ pub(crate) mod fmt {
 }
 
 /// A condition on decoded operands, used to pick a pseudoinstruction.
+#[cfg_attr(
+    not(all(feature = "vector", feature = "vendor-thead", feature = "vendor-corev")),
+    allow(dead_code)
+)]
 #[derive(Clone, Copy, Debug)]
 pub(crate) enum Constraint {
     RdEq(u8),
@@ -282,11 +295,19 @@ pub(crate) struct MaskedOpcode {
 }
 
 /// Builds a [`MaskedOpcode`].
+#[cfg_attr(
+    not(all(feature = "vector", feature = "vendor-thead", feature = "vendor-corev")),
+    allow(dead_code)
+)]
 pub(crate) const fn masked(bits: u32, mask: u32, op: Opcode) -> MaskedOpcode {
     MaskedOpcode { bits, mask, op }
 }
 
 /// Returns the first opcode in `table` that matches `inst`.
+#[cfg_attr(
+    not(all(feature = "vector", feature = "vendor-thead", feature = "vendor-corev")),
+    allow(dead_code)
+)]
 pub(crate) fn lookup_masked(table: &'static [MaskedOpcode], inst: u64) -> Option<&'static Opcode> {
     let inst = inst as u32;
     table
@@ -298,9 +319,26 @@ pub(crate) fn lookup_masked(table: &'static [MaskedOpcode], inst: u64) -> Option
 /// One entry in the opcode tables.
 pub(crate) struct Opcode {
     pub(crate) name: &'static str,
-    pub(crate) codec: Codec,
     /// Operand format string; see [`fmt`].
     pub(crate) format: &'static str,
+    /// The extensions the instruction (or alias) needs, all of which must be
+    /// enabled. Empty for the base ISA.
+    pub(crate) requires: &'static [Extension],
+    /// The fields that few opcodes use.
+    pub(crate) extra: &'static Extra,
+    pub(crate) codec: Codec,
+    /// The base ISAs the instruction exists in, as a bit set indexed by
+    /// [`Isa`].
+    pub(crate) isas: u8,
+    /// Whether the instruction loads, stores or moves to or from the
+    /// floating-point registers, and so does not exist with Zfinx, where
+    /// there are none.
+    pub(crate) f_registers: bool,
+}
+
+/// The fields of an [`Opcode`] that few opcodes use, kept apart so that
+/// the others take less space.
+pub(crate) struct Extra {
     /// Pseudoinstructions to try, in order; the first match is shown instead.
     pub(crate) pseudo: &'static [Pseudo],
     /// For compressed instructions, the expansion for RV32, RV64 and RV128;
@@ -312,35 +350,33 @@ pub(crate) struct Opcode {
     /// Operand values that make the encoding a HINT, which objdump shows as
     /// encoded rather than expanded: it is a HINT if any of these hold.
     pub(crate) hint_if: &'static [Constraint],
-    /// The base ISAs the instruction exists in, as a bit set indexed by
-    /// [`Isa`].
-    pub(crate) isas: u8,
-    /// The extensions the instruction (or alias) needs, all of which must be
-    /// enabled. Empty for the base ISA.
-    pub(crate) requires: &'static [Extension],
     /// Extensions that each provide the instruction (as Zbb and Zbkb both
     /// provide `rol`), at least one of which must be enabled. Empty if
-    /// [`requires`](Self::requires) alone decides.
+    /// [`Opcode::requires`] alone decides.
     pub(crate) requires_any: &'static [Extension],
-    /// Whether the instruction loads, stores or moves to or from the
-    /// floating-point registers, and so does not exist with Zfinx, where
-    /// there are none.
-    pub(crate) f_registers: bool,
+}
+
+impl Extra {
+    /// No aliases, expansions, reserved or HINT operands, or alternative
+    /// extensions.
+    pub(crate) const NONE: Extra = Extra {
+        pseudo: &[],
+        decompress: [None; 3],
+        illegal_if: &[],
+        hint_if: &[],
+        requires_any: &[],
+    };
 }
 
 impl Opcode {
     pub(crate) const fn new(name: &'static str, codec: Codec, format: &'static str) -> Self {
         Opcode {
             name,
-            codec,
             format,
-            pseudo: &[],
-            decompress: [None; 3],
-            illegal_if: &[],
-            hint_if: &[],
-            isas: 0b111,
             requires: &[],
-            requires_any: &[],
+            extra: &Extra::NONE,
+            codec,
+            isas: 0b111,
             f_registers: false,
         }
     }
@@ -349,14 +385,6 @@ impl Opcode {
     pub(crate) const fn f_registers(self) -> Self {
         Opcode {
             f_registers: true,
-            ..self
-        }
-    }
-
-    /// Marks an instruction as provided by each of `exts`.
-    pub(crate) const fn requires_any(self, exts: &'static [Extension]) -> Self {
-        Opcode {
-            requires_any: exts,
             ..self
         }
     }
@@ -407,7 +435,8 @@ impl Opcode {
     pub(crate) fn provided_by(&self, exts: Extensions) -> bool {
         let has = |e: Extension| exts.contains(e) || exts.contains(e.in_x_registers());
         self.requires.iter().all(|&e| has(e))
-            && (self.requires_any.is_empty() || self.requires_any.iter().any(|&e| has(e)))
+            && (self.extra.requires_any.is_empty()
+                || self.extra.requires_any.iter().any(|&e| has(e)))
     }
 
     /// Whether the instruction exists in `isa` with `exts`. A compressed
@@ -415,7 +444,7 @@ impl Opcode {
     pub(crate) fn exists_in(&self, isa: Isa, exts: Extensions) -> bool {
         self.provided_by(exts)
             && (!exts.contains(Extension::Zfinx) || self.in_x_registers())
-            && match self.decompress {
+            && match self.extra.decompress {
                 [None, None, None] => self.isas & (1 << isa as u8) != 0,
                 expansions => expansions[isa as usize].is_some_and(|e| e.exists_in(isa, exts)),
             }

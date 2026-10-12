@@ -10,9 +10,12 @@ edition = "2024"
 publish = false
 
 [dependencies]
-disc-v = { path = ".." }
+disc-v = { path = "..", default-features = false }
 
 [features]
+default = ["all-tables"]
+# disc-v's default features; scripts/panic-check.sh also checks without.
+all-tables = ["disc-v/vector", "disc-v/vendor-thead", "disc-v/vendor-corev"]
 # Link with a panic handler, so that scripts/panic-sites.py can list the
 # panics instead of the link failing.
 diagnose = []

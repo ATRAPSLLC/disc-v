@@ -5,7 +5,7 @@
 //! landing-pad (Zicfilp) instructions defined in terms of them.
 
 use super::Constraint::*;
-use super::{Codec, Opcode, Pseudo, fmt};
+use super::{Codec, Extra, Opcode, Pseudo, fmt};
 use crate::Extension;
 use crate::reg;
 
@@ -39,7 +39,7 @@ pub(crate) static MOP_R: [Opcode; 32] = {
         fmt::RD_RS1,
         &[Extension::Zimop],
     );
-    ops[28].pseudo = &MOP_R_28_ALIASES;
+    ops[28].extra = &MOP_R_28_EXTRA;
     ops
 };
 
@@ -54,7 +54,7 @@ pub(crate) static MOP_RR: [Opcode; 8] = {
         fmt::RD_RS1_RS2,
         &[Extension::Zimop],
     );
-    ops[7].pseudo = &MOP_RR_7_ALIASES;
+    ops[7].extra = &MOP_RR_7_EXTRA;
     ops
 };
 
@@ -69,11 +69,15 @@ pub(crate) static C_MOP: [Opcode; 8] = {
         fmt::NONE,
         &[Extension::Zcmop],
     );
-    ops[0].pseudo = &C_MOP_1_ALIASES;
-    ops[2].pseudo = &C_MOP_5_ALIASES;
+    ops[0].extra = &C_MOP_1_EXTRA;
+    ops[2].extra = &C_MOP_5_EXTRA;
     ops
 };
 
+static MOP_R_28_EXTRA: Extra = Extra {
+    pseudo: &MOP_R_28_ALIASES,
+    ..Extra::NONE
+};
 static MOP_R_28_ALIASES: [Pseudo; 4] = [
     Pseudo::new(&SSPOPCHK, &[RdEq(reg::ZERO), Rs1Eq(reg::RA)]),
     Pseudo::new(&SSPOPCHK, &[RdEq(reg::ZERO), Rs1Eq(reg::T0)]),
@@ -81,6 +85,10 @@ static MOP_R_28_ALIASES: [Pseudo; 4] = [
     Pseudo::new(&MOP_R[28], &[RdEq(reg::ZERO), Rs1Eq(reg::ZERO)]),
     Pseudo::new(&SSRDP, &[Rs1Eq(reg::ZERO)]),
 ];
+static MOP_RR_7_EXTRA: Extra = Extra {
+    pseudo: &MOP_RR_7_ALIASES,
+    ..Extra::NONE
+};
 static MOP_RR_7_ALIASES: [Pseudo; 2] = [
     Pseudo::new(
         &SSPUSH,
@@ -91,7 +99,15 @@ static MOP_RR_7_ALIASES: [Pseudo; 2] = [
         &[RdEq(reg::ZERO), Rs1Eq(reg::ZERO), Rs2Eq(reg::T0)],
     ),
 ];
+static C_MOP_1_EXTRA: Extra = Extra {
+    pseudo: &C_MOP_1_ALIASES,
+    ..Extra::NONE
+};
 static C_MOP_1_ALIASES: [Pseudo; 1] = [Pseudo::new(&C_SSPUSH, &[])];
+static C_MOP_5_EXTRA: Extra = Extra {
+    pseudo: &C_MOP_5_ALIASES,
+    ..Extra::NONE
+};
 static C_MOP_5_ALIASES: [Pseudo; 1] = [Pseudo::new(&C_SSPOPCHK, &[])];
 
 pub(crate) static SSPOPCHK: Opcode =

@@ -167,7 +167,7 @@ out = [f"""// Copyright (c) 2026 Christopher Swenson
 //! (Copyright (c) 2022 RISC-V International, BSD-3-Clause).
 
 use super::Constraint::*;
-use super::{{Codec, MaskedOpcode, Opcode, Pseudo, masked}};
+use super::{{Codec, Extra, MaskedOpcode, Opcode, Pseudo, masked}};
 use crate::Extension;
 """]
 for table, rows in tables.items():
@@ -177,7 +177,7 @@ for table, rows in tables.items():
         op = f'Opcode::new("{name}", Codec::{codec}, "{fmt}").requires(&[Extension::{ext}])'
         if name in aliases:
             ps = ", ".join(f"Pseudo::new(&{ident(a)}, &[{c}])" for a, c, _ in aliases[name])
-            op = f"Opcode {{ pseudo: &[{ps}], ..{op} }}"
+            op = f"Opcode {{ extra: &Extra {{ pseudo: &[{ps}], ..Extra::NONE }}, ..{op} }}"
         out.append(f"    masked({bits:#010x}, {mask:#010x}, {op}),")
     out.append("];")
 out.append("")

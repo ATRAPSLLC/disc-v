@@ -17,6 +17,14 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Vendor extensions are not in `Extensions::DEFAULT`, so the output of
   `decode` and the other free functions is unchanged. `Decoder::from_march`
   accepts their names (`rv64gc_xtheadba`).
+- Cargo features `vector`, `vendor-thead` and `vendor-corev`, on by
+  default, which include the tables of those extensions. Without them, an
+  RV32IMC program that uses disc-v is about half the size.
+
+### Changed
+
+- The opcode tables are about half their size, so programs that use disc-v
+  are smaller.
 
 ## [0.1.2] - 2026-10-08
 

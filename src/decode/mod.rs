@@ -30,11 +30,11 @@ pub(crate) fn decode(isa: Isa, exts: Extensions, pc: u64, inst: u64) -> Instruct
     }
     // HINTs are shown as encoded, as objdump does, unless they have an alias
     // (such as c.ntl.p1 for a c.add HINT).
-    if op.hint_if.iter().any(|&c| holds(&ins, c)) {
+    if op.extra.hint_if.iter().any(|&c| holds(&ins, c)) {
         lift_pseudo(&mut ins, exts);
         return ins;
     }
-    if let Some(expanded) = op.decompress[isa as usize] {
+    if let Some(expanded) = op.extra.decompress[isa as usize] {
         ins.op = expanded;
     }
     lift_pseudo(&mut ins, exts);
@@ -51,7 +51,7 @@ fn is_reserved(ins: &Instruction, exts: Extensions) -> bool {
     ) && ins.imm >= ins.isa.xlen() as i32;
     !op.exists_in(ins.isa, exts)
         || shift_too_big
-        || op.illegal_if.iter().any(|&c| holds(ins, c))
+        || op.extra.illegal_if.iter().any(|&c| holds(ins, c))
         || (exts.contains(Extension::E) && uses_upper_registers(ins))
         || (ins.isa == Isa::Rv32 && exts.contains(Extension::Zdinx) && odd_register_pair(ins))
 }
@@ -101,6 +101,7 @@ fn odd_register_pair(ins: &Instruction) -> bool {
 fn lift_pseudo(ins: &mut Instruction, exts: Extensions) {
     if let Some(p) = ins
         .op
+        .extra
         .pseudo
         .iter()
         .find(|p| p.op.provided_by(exts) && p.when.iter().all(|&c| holds(ins, c)))

@@ -14,6 +14,10 @@ macro_rules! extensions {
         /// Extensions that define no instructions, such as Zkt or Sstc, are
         /// not listed; [`Decoder::from_march`](crate::Decoder::from_march)
         /// accepts and ignores them.
+        ///
+        /// The instructions of the vector and vendor extensions are only
+        /// decoded with the `vector`, `vendor-thead` and `vendor-corev`
+        /// Cargo features, which are on by default.
         #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
         #[non_exhaustive]
         pub enum Extension {

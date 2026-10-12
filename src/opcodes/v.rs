@@ -9,7 +9,7 @@
 //! (Copyright (c) 2022 RISC-V International, BSD-3-Clause).
 
 use super::Constraint::*;
-use super::{Codec, MaskedOpcode, Opcode, Pseudo, masked};
+use super::{Codec, Extra, MaskedOpcode, Opcode, Pseudo, masked};
 use crate::Extension;
 
 pub(crate) static OP_V: [MaskedOpcode; 341] = [
@@ -272,7 +272,10 @@ pub(crate) static OP_V: [MaskedOpcode; 341] = [
         0x24001057,
         0xfc00707f,
         Opcode {
-            pseudo: &[Pseudo::new(&VFNEG_V, &[Rs2EqRs1])],
+            extra: &Extra {
+                pseudo: &[Pseudo::new(&VFNEG_V, &[Rs2EqRs1])],
+                ..Extra::NONE
+            },
             ..Opcode::new("vfsgnjn.vv", Codec::V, "D,B,AM").requires(&[Extension::V])
         },
     ),
@@ -280,7 +283,10 @@ pub(crate) static OP_V: [MaskedOpcode; 341] = [
         0x28001057,
         0xfc00707f,
         Opcode {
-            pseudo: &[Pseudo::new(&VFABS_V, &[Rs2EqRs1])],
+            extra: &Extra {
+                pseudo: &[Pseudo::new(&VFABS_V, &[Rs2EqRs1])],
+                ..Extra::NONE
+            },
             ..Opcode::new("vfsgnjx.vv", Codec::V, "D,B,AM").requires(&[Extension::V])
         },
     ),
@@ -553,7 +559,10 @@ pub(crate) static OP_V: [MaskedOpcode; 341] = [
         0x0c004057,
         0xfc00707f,
         Opcode {
-            pseudo: &[Pseudo::new(&VNEG_V, &[Rs1Eq(0)])],
+            extra: &Extra {
+                pseudo: &[Pseudo::new(&VNEG_V, &[Rs1Eq(0)])],
+                ..Extra::NONE
+            },
             ..Opcode::new("vrsub.vx", Codec::V, "D,B,1M").requires(&[Extension::V])
         },
     ),
@@ -741,7 +750,10 @@ pub(crate) static OP_V: [MaskedOpcode; 341] = [
         0xb0004057,
         0xfc00707f,
         Opcode {
-            pseudo: &[Pseudo::new(&VNCVT_X_X_W, &[Rs1Eq(0)])],
+            extra: &Extra {
+                pseudo: &[Pseudo::new(&VNCVT_X_X_W, &[Rs1Eq(0)])],
+                ..Extra::NONE
+            },
             ..Opcode::new("vnsrl.wx", Codec::V, "D,B,1M").requires(&[Extension::V])
         },
     ),
@@ -989,7 +1001,10 @@ pub(crate) static OP_V: [MaskedOpcode; 341] = [
         0x2c003057,
         0xfc00707f,
         Opcode {
-            pseudo: &[Pseudo::new(&VNOT_V, &[ImmEq(-1)])],
+            extra: &Extra {
+                pseudo: &[Pseudo::new(&VNOT_V, &[ImmEq(-1)])],
+                ..Extra::NONE
+            },
             ..Opcode::new("vxor.vi", Codec::V, "D,B,iM").requires(&[Extension::V])
         },
     ),
@@ -1247,7 +1262,10 @@ pub(crate) static OP_V: [MaskedOpcode; 341] = [
         0x66002057,
         0xfe00707f,
         Opcode {
-            pseudo: &[Pseudo::new(&VMMV_M, &[Rs2EqRs1])],
+            extra: &Extra {
+                pseudo: &[Pseudo::new(&VMMV_M, &[Rs2EqRs1])],
+                ..Extra::NONE
+            },
             ..Opcode::new("vmand.mm", Codec::V, "D,B,A").requires(&[Extension::V])
         },
     ),
@@ -1260,7 +1278,10 @@ pub(crate) static OP_V: [MaskedOpcode; 341] = [
         0x6e002057,
         0xfe00707f,
         Opcode {
-            pseudo: &[Pseudo::new(&VMCLR_M, &[Rs2EqRs1, RdEqRs1])],
+            extra: &Extra {
+                pseudo: &[Pseudo::new(&VMCLR_M, &[Rs2EqRs1, RdEqRs1])],
+                ..Extra::NONE
+            },
             ..Opcode::new("vmxor.mm", Codec::V, "D,B,A").requires(&[Extension::V])
         },
     ),
@@ -1273,7 +1294,10 @@ pub(crate) static OP_V: [MaskedOpcode; 341] = [
         0x76002057,
         0xfe00707f,
         Opcode {
-            pseudo: &[Pseudo::new(&VMNOT_M, &[Rs2EqRs1])],
+            extra: &Extra {
+                pseudo: &[Pseudo::new(&VMNOT_M, &[Rs2EqRs1])],
+                ..Extra::NONE
+            },
             ..Opcode::new("vmnand.mm", Codec::V, "D,B,A").requires(&[Extension::V])
         },
     ),
@@ -1286,7 +1310,10 @@ pub(crate) static OP_V: [MaskedOpcode; 341] = [
         0x7e002057,
         0xfe00707f,
         Opcode {
-            pseudo: &[Pseudo::new(&VMSET_M, &[Rs2EqRs1, RdEqRs1])],
+            extra: &Extra {
+                pseudo: &[Pseudo::new(&VMSET_M, &[Rs2EqRs1, RdEqRs1])],
+                ..Extra::NONE
+            },
             ..Opcode::new("vmxnor.mm", Codec::V, "D,B,A").requires(&[Extension::V])
         },
     ),
@@ -1554,7 +1581,10 @@ pub(crate) static OP_V: [MaskedOpcode; 341] = [
         0xc0006057,
         0xfc00707f,
         Opcode {
-            pseudo: &[Pseudo::new(&VWCVTU_X_X_V, &[Rs1Eq(0)])],
+            extra: &Extra {
+                pseudo: &[Pseudo::new(&VWCVTU_X_X_V, &[Rs1Eq(0)])],
+                ..Extra::NONE
+            },
             ..Opcode::new("vwaddu.vx", Codec::V, "D,B,1M").requires(&[Extension::V])
         },
     ),
@@ -1562,7 +1592,10 @@ pub(crate) static OP_V: [MaskedOpcode; 341] = [
         0xc4006057,
         0xfc00707f,
         Opcode {
-            pseudo: &[Pseudo::new(&VWCVT_X_X_V, &[Rs1Eq(0)])],
+            extra: &Extra {
+                pseudo: &[Pseudo::new(&VWCVT_X_X_V, &[Rs1Eq(0)])],
+                ..Extra::NONE
+            },
             ..Opcode::new("vwadd.vx", Codec::V, "D,B,1M").requires(&[Extension::V])
         },
     ),
@@ -2671,7 +2704,10 @@ pub(crate) static LOAD_FP: [MaskedOpcode; 177] = [
         0x02800007,
         0xfff0707f,
         Opcode {
-            pseudo: &[Pseudo::new(&VL1R_V, &[])],
+            extra: &Extra {
+                pseudo: &[Pseudo::new(&VL1R_V, &[])],
+                ..Extra::NONE
+            },
             ..Opcode::new("vl1re8.v", Codec::V, "D,(1)").requires(&[Extension::V])
         },
     ),
@@ -2694,7 +2730,10 @@ pub(crate) static LOAD_FP: [MaskedOpcode; 177] = [
         0x22800007,
         0xfff0707f,
         Opcode {
-            pseudo: &[Pseudo::new(&VL2R_V, &[])],
+            extra: &Extra {
+                pseudo: &[Pseudo::new(&VL2R_V, &[])],
+                ..Extra::NONE
+            },
             ..Opcode::new("vl2re8.v", Codec::V, "D,(1)").requires(&[Extension::V])
         },
     ),
@@ -2717,7 +2756,10 @@ pub(crate) static LOAD_FP: [MaskedOpcode; 177] = [
         0x62800007,
         0xfff0707f,
         Opcode {
-            pseudo: &[Pseudo::new(&VL4R_V, &[])],
+            extra: &Extra {
+                pseudo: &[Pseudo::new(&VL4R_V, &[])],
+                ..Extra::NONE
+            },
             ..Opcode::new("vl4re8.v", Codec::V, "D,(1)").requires(&[Extension::V])
         },
     ),
@@ -2740,7 +2782,10 @@ pub(crate) static LOAD_FP: [MaskedOpcode; 177] = [
         0xe2800007,
         0xfff0707f,
         Opcode {
-            pseudo: &[Pseudo::new(&VL8R_V, &[])],
+            extra: &Extra {
+                pseudo: &[Pseudo::new(&VL8R_V, &[])],
+                ..Extra::NONE
+            },
             ..Opcode::new("vl8re8.v", Codec::V, "D,(1)").requires(&[Extension::V])
         },
     ),

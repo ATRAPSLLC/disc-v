@@ -421,6 +421,7 @@ mod tests {
     /// encodings overlap in the same base ISA, and no extension's encodings
     /// overlap each other.
     #[test]
+    #[cfg(all(feature = "vendor-thead", feature = "vendor-corev"))]
     fn vendor_conflicts_are_the_overlapping_encodings() {
         use crate::opcodes::{MaskedOpcode, xcv, xthead};
         let tables: [&[MaskedOpcode]; 2] = [&xthead::CUSTOM_0, &xcv::CUSTOM];

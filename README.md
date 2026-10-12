@@ -99,6 +99,31 @@ let dec = Decoder::with_only(Isa::Rv32, Extensions::GC | Extensions::XCV).unwrap
 assert_eq!(dec.decode(0, 0x00c5857b).to_string(), "cv.add.h a0,a1,a2");
 ```
 
+## Cargo features
+
+The vector and vendor extensions' tables are behind Cargo features, all on
+by default:
+
+| Feature | Extensions |
+|---|---|
+| `vector` | V, Zvbb, Zvbc, Zvkg, Zvkned, Zvknha, Zvknhb, Zvksed, Zvksh, Zvfbfmin, Zvfbfwma |
+| `vendor-thead` | XThead* |
+| `vendor-corev` | XCV* |
+
+The decoder chooses extensions at run time, so the linker keeps every
+table it is built with. A program that does not need these extensions can
+leave them out:
+
+```toml
+disc-v = { version = "0.1", default-features = false }
+```
+
+An RV32IMC program that disassembles with `Decoder::with_only` is about
+73 KB (code and read-only data) without these features, and 130 KB with
+them, built for `riscv32imc-unknown-none-elf` with `opt-level = "s"` and
+LTO. Without its feature, an extension's instructions are shown as
+`.insn`.
+
 ## Output format
 
 The text is what `objdump -D -b binary` prints for the same bytes: the same
@@ -143,7 +168,8 @@ ISA specification disagree; see
   not decoded by default
 - `ecall`, `ebreak`, `sret`, `mret`, `dret`, `wfi` and `sfence.vma`; Svinval,
   Smrnmi (`mnret`) and Ssctr (`sctrclr`)
-- Vendor extensions, which are not decoded by default:
+- Vendor extensions, which are not decoded by default (see also
+  [Cargo features](#cargo-features)):
   - T-Head: XTheadBa, XTheadBb, XTheadBs, XTheadCmo, XTheadCondMov,
     XTheadFMemIdx, XTheadFmv, XTheadInt, XTheadMac, XTheadMemIdx,
     XTheadMemPair and XTheadSync

@@ -5,7 +5,7 @@
 // and Copyright (c) 2017-2018 SiFive, Inc., under the MIT license; see NOTICE.
 
 //! Pseudoinstructions and aliases that real instructions are shown as
-//! when their operands match. See [`Opcode::pseudo`](super::Opcode::pseudo).
+//! when their operands match. See [`Extra::pseudo`](super::Extra::pseudo).
 
 use super::{Codec, Opcode, fmt};
 use crate::Extension;

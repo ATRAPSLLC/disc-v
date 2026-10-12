@@ -34,6 +34,10 @@
 //! - T-Head and CORE-V vendor extensions, which are only decoded by a
 //!   [`Decoder`] that enables them
 //!
+//! The vector and vendor extensions need the `vector`, `vendor-thead` and
+//! `vendor-corev` Cargo features, which are on by default; without them,
+//! their instructions are shown as `.insn` and the binary is smaller.
+//!
 //! The text follows GNU objdump's for a raw binary (`objdump -D -b binary`),
 //! so branch targets are written as `0x1008`.
 //!
@@ -69,8 +73,14 @@ pub use extension::{Extension, Extensions};
 pub use format::Operands;
 pub use instruction::Instruction;
 
-// Compiles and runs the README's examples as doc tests.
-#[cfg(doctest)]
+// Compiles and runs the README's examples as doc tests. They use every
+// table.
+#[cfg(all(
+    doctest,
+    feature = "vector",
+    feature = "vendor-thead",
+    feature = "vendor-corev"
+))]
 #[doc = include_str!("../README.md")]
 struct ReadmeDoctests;
 

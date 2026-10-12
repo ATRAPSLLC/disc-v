@@ -7,7 +7,7 @@
 //! "F" extension: single-precision floating point.
 
 use super::Constraint::*;
-use super::{Codec, Opcode, Pseudo, fmt, pseudo};
+use super::{Codec, Extra, Opcode, Pseudo, fmt, pseudo};
 use crate::Extension;
 
 pub(crate) static FLW: Opcode = Opcode::new("flw", Codec::I, fmt::FRD_OFFSET_RS1)
@@ -33,15 +33,24 @@ pub(crate) static FMUL_S: Opcode =
 pub(crate) static FDIV_S: Opcode =
     Opcode::new("fdiv.s", Codec::RM, fmt::RM_FRD_FRS1_FRS2).requires(&[Extension::F]);
 pub(crate) static FSGNJ_S: Opcode = Opcode {
-    pseudo: &[Pseudo::new(&pseudo::FMV_S, &[Rs2EqRs1])],
+    extra: &Extra {
+        pseudo: &[Pseudo::new(&pseudo::FMV_S, &[Rs2EqRs1])],
+        ..Extra::NONE
+    },
     ..Opcode::new("fsgnj.s", Codec::R, fmt::FRD_FRS1_FRS2).requires(&[Extension::F])
 };
 pub(crate) static FSGNJN_S: Opcode = Opcode {
-    pseudo: &[Pseudo::new(&pseudo::FNEG_S, &[Rs2EqRs1])],
+    extra: &Extra {
+        pseudo: &[Pseudo::new(&pseudo::FNEG_S, &[Rs2EqRs1])],
+        ..Extra::NONE
+    },
     ..Opcode::new("fsgnjn.s", Codec::R, fmt::FRD_FRS1_FRS2).requires(&[Extension::F])
 };
 pub(crate) static FSGNJX_S: Opcode = Opcode {
-    pseudo: &[Pseudo::new(&pseudo::FABS_S, &[Rs2EqRs1])],
+    extra: &Extra {
+        pseudo: &[Pseudo::new(&pseudo::FABS_S, &[Rs2EqRs1])],
+        ..Extra::NONE
+    },
     ..Opcode::new("fsgnjx.s", Codec::R, fmt::FRD_FRS1_FRS2).requires(&[Extension::F])
 };
 pub(crate) static FMIN_S: Opcode =
