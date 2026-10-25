@@ -293,6 +293,19 @@ fn vendor_extensions() {
     check(corev, 0x00c5a42b, "cv.sw a2,(a1),8");
     check(corev, 0x00c5857b, "cv.add.h a0,a1,a2");
     check(corev, 0x03f5e57b, "cv.add.sci.h a0,a1,-1");
+    // The lane moves, cv.shuffle.sci.h and the immediate shifts use only some
+    // bits of their immediate; CV32E40P's decoder raises an illegal
+    // instruction when the others are set.
+    check(corev, 0xba06c0fb, "cv.insert.h ra,a3,1");
+    check(corev, 0xb816c0fb, ".insn 4, 0xb816c0fb"); // cv.insert.h ra,a3,2
+    check(corev, 0xba15957b, "cv.extract.b a0,a1,3");
+    check(corev, 0xb825957b, ".insn 4, 0xb825957b"); // cv.extract.b a0,a1,4
+    check(corev, 0x5235f57b, "cv.sll.sci.b a0,a1,7");
+    check(corev, 0x5045f57b, ".insn 4, 0x5045f57b"); // cv.sll.sci.b a0,a1,8
+    check(corev, 0x4275e57b, "cv.srl.sci.h a0,a1,15");
+    check(corev, 0x4085e57b, ".insn 4, 0x4085e57b"); // cv.srl.sci.h a0,a1,16
+    check(corev, 0xc215e57b, "cv.shuffle.sci.h a0,a1,3");
+    check(corev, 0xc025e57b, ".insn 4, 0xc025e57b"); // cv.shuffle.sci.h a0,a1,4
     let rv64 = Decoder::with_only(Isa::Rv64, Extensions::XCV).unwrap();
     check(rv64, 0x00c5857b, ".insn 4, 0x00c5857b");
 

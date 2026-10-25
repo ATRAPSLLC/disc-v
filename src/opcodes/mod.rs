@@ -270,6 +270,8 @@ pub(crate) enum Constraint {
     ImmEq(i32),
     /// The immediate's bits in the mask (first) equal the value (second).
     ImmMaskEq(i32, i32),
+    /// Some of the immediate's bits in the mask are set.
+    ImmMaskNonzero(i32),
     /// The CSR number, which is held in the immediate.
     CsrEq(i32),
 }

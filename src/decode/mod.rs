@@ -122,5 +122,6 @@ fn holds(ins: &Instruction, c: Constraint) -> bool {
         Constraint::Rs2Odd => ins.rs2 & 1 == 1,
         Constraint::ImmEq(imm) | Constraint::CsrEq(imm) => ins.imm == imm,
         Constraint::ImmMaskEq(mask, value) => ins.imm & mask == value,
+        Constraint::ImmMaskNonzero(mask) => ins.imm & mask != 0,
     }
 }

@@ -7,8 +7,14 @@
 //! The encodings are from LLVM's RISCVInstrInfoXCV.td (Apache-2.0 WITH
 //! LLVM-exception), which follows the CV32E40P user manual, and the operand
 //! syntax is objdump's.
+//!
+//! Where the CV32E40P decoder (`cv32e40p_decoder.sv`) uses only some bits of a
+//! six-bit immediate and raises an illegal instruction when the others are
+//! set - the lane extracts and inserts, `cv.shuffle.sci.h`, the immediate
+//! shifts - such an encoding is illegal here too, though LLVM accepts it.
 
-use super::{Codec, MaskedOpcode, Opcode, masked};
+use super::Constraint::ImmMaskNonzero;
+use super::{Codec, Extra, MaskedOpcode, Opcode, masked};
 use crate::{Extension, Mnemonic};
 
 pub(crate) static CUSTOM: [MaskedOpcode; 312] = [
@@ -1023,16 +1029,28 @@ pub(crate) static CUSTOM: [MaskedOpcode; 312] = [
     masked(
         0x4000607b,
         0xfc00707f,
-        Opcode::new(Mnemonic::CvSrlSciH, Codec::Uimm6, "0,1,i")
-            .requires(&[Extension::XCVsimd])
-            .rv32_only(),
+        Opcode {
+            extra: &Extra {
+                illegal_if: &[ImmMaskNonzero(0x30)],
+                ..Extra::NONE
+            },
+            ..Opcode::new(Mnemonic::CvSrlSciH, Codec::Uimm6, "0,1,i")
+                .requires(&[Extension::XCVsimd])
+                .rv32_only()
+        },
     ),
     masked(
         0x4000707b,
         0xfc00707f,
-        Opcode::new(Mnemonic::CvSrlSciB, Codec::Uimm6, "0,1,i")
-            .requires(&[Extension::XCVsimd])
-            .rv32_only(),
+        Opcode {
+            extra: &Extra {
+                illegal_if: &[ImmMaskNonzero(0x38)],
+                ..Extra::NONE
+            },
+            ..Opcode::new(Mnemonic::CvSrlSciB, Codec::Uimm6, "0,1,i")
+                .requires(&[Extension::XCVsimd])
+                .rv32_only()
+        },
     ),
     masked(
         0x4800007b,
@@ -1065,16 +1083,28 @@ pub(crate) static CUSTOM: [MaskedOpcode; 312] = [
     masked(
         0x4800607b,
         0xfc00707f,
-        Opcode::new(Mnemonic::CvSraSciH, Codec::Uimm6, "0,1,i")
-            .requires(&[Extension::XCVsimd])
-            .rv32_only(),
+        Opcode {
+            extra: &Extra {
+                illegal_if: &[ImmMaskNonzero(0x30)],
+                ..Extra::NONE
+            },
+            ..Opcode::new(Mnemonic::CvSraSciH, Codec::Uimm6, "0,1,i")
+                .requires(&[Extension::XCVsimd])
+                .rv32_only()
+        },
     ),
     masked(
         0x4800707b,
         0xfc00707f,
-        Opcode::new(Mnemonic::CvSraSciB, Codec::Uimm6, "0,1,i")
-            .requires(&[Extension::XCVsimd])
-            .rv32_only(),
+        Opcode {
+            extra: &Extra {
+                illegal_if: &[ImmMaskNonzero(0x38)],
+                ..Extra::NONE
+            },
+            ..Opcode::new(Mnemonic::CvSraSciB, Codec::Uimm6, "0,1,i")
+                .requires(&[Extension::XCVsimd])
+                .rv32_only()
+        },
     ),
     masked(
         0x5000007b,
@@ -1107,16 +1137,28 @@ pub(crate) static CUSTOM: [MaskedOpcode; 312] = [
     masked(
         0x5000607b,
         0xfc00707f,
-        Opcode::new(Mnemonic::CvSllSciH, Codec::Uimm6, "0,1,i")
-            .requires(&[Extension::XCVsimd])
-            .rv32_only(),
+        Opcode {
+            extra: &Extra {
+                illegal_if: &[ImmMaskNonzero(0x30)],
+                ..Extra::NONE
+            },
+            ..Opcode::new(Mnemonic::CvSllSciH, Codec::Uimm6, "0,1,i")
+                .requires(&[Extension::XCVsimd])
+                .rv32_only()
+        },
     ),
     masked(
         0x5000707b,
         0xfc00707f,
-        Opcode::new(Mnemonic::CvSllSciB, Codec::Uimm6, "0,1,i")
-            .requires(&[Extension::XCVsimd])
-            .rv32_only(),
+        Opcode {
+            extra: &Extra {
+                illegal_if: &[ImmMaskNonzero(0x38)],
+                ..Extra::NONE
+            },
+            ..Opcode::new(Mnemonic::CvSllSciB, Codec::Uimm6, "0,1,i")
+                .requires(&[Extension::XCVsimd])
+                .rv32_only()
+        },
     ),
     masked(
         0x5800007b,
@@ -1513,44 +1555,80 @@ pub(crate) static CUSTOM: [MaskedOpcode; 312] = [
     masked(
         0xb800007b,
         0xfc00707f,
-        Opcode::new(Mnemonic::CvExtractH, Codec::Uimm6, "0,1,i")
-            .requires(&[Extension::XCVsimd])
-            .rv32_only(),
+        Opcode {
+            extra: &Extra {
+                illegal_if: &[ImmMaskNonzero(0x3e)],
+                ..Extra::NONE
+            },
+            ..Opcode::new(Mnemonic::CvExtractH, Codec::Uimm6, "0,1,i")
+                .requires(&[Extension::XCVsimd])
+                .rv32_only()
+        },
     ),
     masked(
         0xb800107b,
         0xfc00707f,
-        Opcode::new(Mnemonic::CvExtractB, Codec::Uimm6, "0,1,i")
-            .requires(&[Extension::XCVsimd])
-            .rv32_only(),
+        Opcode {
+            extra: &Extra {
+                illegal_if: &[ImmMaskNonzero(0x3c)],
+                ..Extra::NONE
+            },
+            ..Opcode::new(Mnemonic::CvExtractB, Codec::Uimm6, "0,1,i")
+                .requires(&[Extension::XCVsimd])
+                .rv32_only()
+        },
     ),
     masked(
         0xb800207b,
         0xfc00707f,
-        Opcode::new(Mnemonic::CvExtractuH, Codec::Uimm6, "0,1,i")
-            .requires(&[Extension::XCVsimd])
-            .rv32_only(),
+        Opcode {
+            extra: &Extra {
+                illegal_if: &[ImmMaskNonzero(0x3e)],
+                ..Extra::NONE
+            },
+            ..Opcode::new(Mnemonic::CvExtractuH, Codec::Uimm6, "0,1,i")
+                .requires(&[Extension::XCVsimd])
+                .rv32_only()
+        },
     ),
     masked(
         0xb800307b,
         0xfc00707f,
-        Opcode::new(Mnemonic::CvExtractuB, Codec::Uimm6, "0,1,i")
-            .requires(&[Extension::XCVsimd])
-            .rv32_only(),
+        Opcode {
+            extra: &Extra {
+                illegal_if: &[ImmMaskNonzero(0x3c)],
+                ..Extra::NONE
+            },
+            ..Opcode::new(Mnemonic::CvExtractuB, Codec::Uimm6, "0,1,i")
+                .requires(&[Extension::XCVsimd])
+                .rv32_only()
+        },
     ),
     masked(
         0xb800407b,
         0xfc00707f,
-        Opcode::new(Mnemonic::CvInsertH, Codec::Uimm6, "0,1,i")
-            .requires(&[Extension::XCVsimd])
-            .rv32_only(),
+        Opcode {
+            extra: &Extra {
+                illegal_if: &[ImmMaskNonzero(0x3e)],
+                ..Extra::NONE
+            },
+            ..Opcode::new(Mnemonic::CvInsertH, Codec::Uimm6, "0,1,i")
+                .requires(&[Extension::XCVsimd])
+                .rv32_only()
+        },
     ),
     masked(
         0xb800507b,
         0xfc00707f,
-        Opcode::new(Mnemonic::CvInsertB, Codec::Uimm6, "0,1,i")
-            .requires(&[Extension::XCVsimd])
-            .rv32_only(),
+        Opcode {
+            extra: &Extra {
+                illegal_if: &[ImmMaskNonzero(0x3c)],
+                ..Extra::NONE
+            },
+            ..Opcode::new(Mnemonic::CvInsertB, Codec::Uimm6, "0,1,i")
+                .requires(&[Extension::XCVsimd])
+                .rv32_only()
+        },
     ),
     masked(
         0xc000007b,
@@ -1569,9 +1647,15 @@ pub(crate) static CUSTOM: [MaskedOpcode; 312] = [
     masked(
         0xc000607b,
         0xfc00707f,
-        Opcode::new(Mnemonic::CvShuffleSciH, Codec::Uimm6, "0,1,i")
-            .requires(&[Extension::XCVsimd])
-            .rv32_only(),
+        Opcode {
+            extra: &Extra {
+                illegal_if: &[ImmMaskNonzero(0x3c)],
+                ..Extra::NONE
+            },
+            ..Opcode::new(Mnemonic::CvShuffleSciH, Codec::Uimm6, "0,1,i")
+                .requires(&[Extension::XCVsimd])
+                .rv32_only()
+        },
     ),
     masked(
         0xc000707b,
