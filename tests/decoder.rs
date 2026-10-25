@@ -283,6 +283,11 @@ fn vendor_extensions() {
     let rv32 = Decoder::with_only(Isa::Rv32, Extensions::GC | Extensions::XTHEAD).unwrap();
     check(rv32, 0x1285950b, "th.srri a0,a1,40");
     check(rv32, 0xfab6450b, ".insn 4, 0xfab6450b"); // th.ldd is RV64-only
+    // A field RV32 does not have is no operand: th.ext slices one. th.tst
+    // tests a bit past the register as clear, as its operation states.
+    check(rv32, 0x8235a50b, ".insn 4, 0x8235a50b"); // th.ext a0,a1,32,3
+    check(rv32, 0x1c35a50b, "th.ext a0,a1,7,3");
+    check(rv32, 0x8a85950b, "th.tst a0,a1,40");
 
     // CORE-V is for RV32. cv.elw and cv.beqimm follow the CV32E40P manual.
     let corev =

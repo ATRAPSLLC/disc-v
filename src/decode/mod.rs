@@ -45,10 +45,17 @@ pub(crate) fn decode(isa: Isa, exts: Extensions, pc: u64, inst: u64) -> Instruct
 /// the ISA and extensions.
 fn is_reserved(ins: &Instruction, exts: Extensions) -> bool {
     let op = ins.op;
-    let shift_too_big = matches!(
-        op.codec,
-        Codec::ISh5 | Codec::ISh6 | Codec::ISh7 | Codec::CiSh6 | Codec::CbSh6
-    ) && ins.imm >= ins.isa.xlen() as i32;
+    // A shift amount the register's width or more is reserved, and so is a
+    // field past the register: XTheadBb's `th.ext` and `th.extu` slice bits
+    // RV32 does not have. Not an immediate whose operation the specification
+    // defines at any width: `th.srri` rotates by its low five bits on RV32,
+    // and `th.tst` tests a bit past the register as clear.
+    let xlen = ins.isa.xlen() as i32;
+    let shift_too_big = match op.codec {
+        Codec::ISh5 | Codec::ISh6 | Codec::ISh7 | Codec::CiSh6 | Codec::CbSh6 => ins.imm >= xlen,
+        Codec::ImmPair6 => ins.imm >= xlen || ins.imm2 >= xlen,
+        _ => false,
+    };
     !op.exists_in(ins.isa, exts)
         || shift_too_big
         || op.extra.illegal_if.iter().any(|&c| holds(ins, c))
